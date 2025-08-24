@@ -105,11 +105,13 @@ public interface ApiInterface {
             @Query("school_id") int schoolId,
             @Query("time_slot_id") int timeSlotId
     );
+
     @GET("get_appointments.php")
-    Call<List<ViewBookingModel>> getBookedStudents(
+    Call<List<ViewBookingModel>> getFilteredBookedStudents(
             @Query("school_id") int schoolId,
             @Query("department_id") int departmentId,
             @Query("slot_date_id") int dateSlotId,
             @Query("time_slot_id") int timeSlotId
     );
+
 }

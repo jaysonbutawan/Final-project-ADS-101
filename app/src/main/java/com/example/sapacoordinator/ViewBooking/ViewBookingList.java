@@ -22,7 +22,6 @@ import com.example.sapacoordinator.DatabaseConnector.ApiClient;
 import com.example.sapacoordinator.DatabaseConnector.ApiInterface;
 import com.example.sapacoordinator.HospitalComponents.DepartmentComponents.Department;
 import com.example.sapacoordinator.HospitalComponents.TimeSlotsComponents.DateSlot;
-import com.example.sapacoordinator.HospitalComponents.TimeSlotsComponents.TimeSlotList;
 import com.example.sapacoordinator.HospitalComponents.TimeSlotsComponents.TimeSlotModel;
 import com.example.sapacoordinator.R;
 
@@ -49,6 +48,10 @@ public class ViewBookingList extends Fragment {
     private int schoolId;
     private int hospitalId;
     private int departmentId;
+
+    private int selectedDepartmentId = -1;
+    private int selectedDateId = -1;
+    private int selectedTimeId = -1;
 
     private static final String TAG = "ViewBookingList";
 
@@ -91,7 +94,7 @@ public class ViewBookingList extends Fragment {
         setupRecyclerView();
         setupSpinners();
         setupFilterListeners();
-        loadBookingDataFromAPI();
+//        loadBookingDataFromAPI();
         loadDepartments();
     }
 
@@ -148,31 +151,26 @@ public class ViewBookingList extends Fragment {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                     if (position == 0) {
-                        // "All Departments"
+                        selectedDepartmentId = -1;
                         setupEmptyDateSpinner();
                         setupEmptyTimeSpinner();
-                        applyFilters();
+                        selectedDateId = -1;
+                        selectedTimeId = -1;
                         return;
                     }
+                    Department selectedDept = departments.get(position - 1);
+                    selectedDepartmentId = selectedDept.getDepartment_id();
 
-                    // ✅ Use the departments list populated in loadDepartments()
-                    Department selectedDept = departments.get(position - 1); // -1 for "All Departments"
-                    int departmentId = selectedDept.getDepartment_id();
-
-                    Log.d(TAG, "User selected Department: " + selectedDept.getSection_name() +
-                            " (ID: " + departmentId + ")");
-
-                    // ✅ Now load dates for THIS department
-                    loadDates(departmentId);
-
-                    // Reset times
+                    Log.d(TAG, "User selected Department: " + selectedDept.getSection_name() + " (ID: " + selectedDepartmentId + ")");
+                    loadDates(selectedDepartmentId);
+                    selectedDateId = -1;
+                    selectedTimeId = -1;
                     setupEmptyTimeSpinner();
                 }
 
                 @Override
                 public void onNothingSelected(AdapterView<?> parent) {}
             });
-
         }
 
         if (dateSpinner != null) {
@@ -181,28 +179,21 @@ public class ViewBookingList extends Fragment {
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                     if (position == 0) {
                         // "All Dates"
+                        selectedDateId = -1;
+                        selectedTimeId = -1;
                         setupEmptyTimeSpinner();
-                        applyFilters();
                         return;
                     }
 
                     String selectedDate = parent.getSelectedItem().toString();
                     Log.d(TAG, "Selected Date: " + selectedDate);
+                    DateSlot selectedSlot = dateSlots.get(position - 1);
+                    selectedDateId = selectedSlot.getSlotDateId();
 
-                    // ✅ Find the DateSlot object
-                    DateSlot selectedSlot = dateSlots.get(position - 1); // offset for "All Dates"
-                    int slotDateId = selectedSlot.getSlotDateId(); // make sure your model has this field
-                    int selectedDeptId = departmentId; // fallback
+                    Log.d(TAG, "Selected DateSlotID: " + selectedDateId);
+                    loadTimes(selectedDateId);
 
-                    if (departmentSpinner.getSelectedItemPosition() > 0) {
-                        Department selectedDept = departments.get(departmentSpinner.getSelectedItemPosition() - 1);
-                        selectedDeptId = selectedDept.getDepartment_id();
-                    }
-
-                    Log.d(TAG, "Loading times for DeptID: " + selectedDeptId + " SlotDateID: " + slotDateId);
-                    loadTimes(slotDateId);
-
-                    applyFilters();
+                    selectedTimeId = -1;
                 }
 
                 @Override
@@ -216,7 +207,7 @@ public class ViewBookingList extends Fragment {
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                     if (position == 0) {
                         // "All Times"
-                        applyFilters();
+                        selectedTimeId = -1;
                         return;
                     }
 
@@ -225,11 +216,9 @@ public class ViewBookingList extends Fragment {
 
                     // ✅ Get the selected time slot object
                     TimeSlotModel selectedSlot = timeSlots.get(position - 1); // offset for "All Times"
-                    int slotTimeId = selectedSlot.getTime_slot_id();
+                    selectedTimeId = selectedSlot.getTime_slot_id();
 
-                    Log.d(TAG, "Selected TimeSlotID: " + slotTimeId);
-
-                    applyFilters();
+                    Log.d(TAG, "Selected TimeSlotID: " + selectedTimeId);
                 }
 
                 @Override
@@ -237,18 +226,26 @@ public class ViewBookingList extends Fragment {
             });
         }
 
-
-
+        // ✅ Apply Filters Button - This will trigger loadBookingDataFromAPI with selected filters
         if (applyFiltersButton != null) {
-            applyFiltersButton.setOnClickListener(v -> applyFilters());
+            applyFiltersButton.setOnClickListener(v -> {
+//                Log.d("DEBUG_", "Apply Filters button clicked - Loading filtered booking data");
+//                Log.d("DEBUG_", "Selected filters - DepartmentID: "+ "school id"+schoolId + selectedDepartmentId +
+//                           ", DateID: " + selectedDateId +
+//                           ", TimeID: " + selectedTimeId);
+
+                // Call loadBookingDataFromAPI with current filter selections
+                loadBookingDataFromAPI();
+            });
         }
     }
 
     private void loadBookingDataFromAPI() {
         if (schoolId == -1) {
-            showEmptyState("Invalid school ID");
+            Log.w("DEBUG_", "Skipping booking load - missing required IDs. schoolId=" + schoolId + ", hospitalId=" + hospitalId);
             return;
         }
+        // || hospitalId == -1
 
         // Show loading dialog
         SweetAlertDialog loadingDialog = new SweetAlertDialog(requireContext(), SweetAlertDialog.PROGRESS_TYPE);
@@ -256,42 +253,80 @@ public class ViewBookingList extends Fragment {
         loadingDialog.setCancelable(false);
         loadingDialog.show();
 
-        ApiInterface apiInterface = ApiClient.getClient().create(ApiInterface.class);
-        Call<List<ViewBookingModel>> call = apiInterface.getBookedStudents(schoolId);
+        ApiInterface api = ApiClient.getClient().create(ApiInterface.class);
 
+        // Always use one API, send 0 when no filter
+        int deptId = (selectedDepartmentId == -1) ? 0 : selectedDepartmentId;
+        int dateId = (selectedDateId == -1) ? 0 : selectedDateId;
+        int timeId = (selectedTimeId == -1) ? 0 : selectedTimeId;
+
+        Log.d("DEBUG_", "Fetching bookings with - SchoolID: " + schoolId +
+                ", DeptID: " + deptId +
+                ", DateID: " + dateId +
+                ", TimeID: " + timeId);
+
+        Call<List<ViewBookingModel>> call = api.getFilteredBookedStudents(schoolId, deptId, dateId, timeId);
+
+        // Execute
         call.enqueue(new Callback<>() {
             @SuppressLint("NotifyDataSetChanged")
             @Override
-            public void onResponse(@NonNull Call<List<ViewBookingModel>> call, @NonNull Response<List<ViewBookingModel>> response) {
+            public void onResponse(@NonNull Call<List<ViewBookingModel>> call,
+                                   @NonNull Response<List<ViewBookingModel>> response) {
                 loadingDialog.dismiss();
 
-                if (response.isSuccessful() && response.body() != null) {
-                    bookingList = response.body();
-                    filteredList = new ArrayList<>(bookingList);
+                Log.d("DEBUG_", "API reached! Response code = " + response.code());
 
-                    if (bookingList.isEmpty()) {
-                        showEmptyState("No bookings found for this school");
-                    } else {
-                        hideEmptyState();
-                        extractFilterData();
-                        updateSpinnerOptions();
-                        adapter.notifyDataSetChanged();
-                        updateResultsCount();
-                    }
+                if (response.isSuccessful() && response.body() != null) {
+                    Log.d("DEBUG_", "Response size = " + response.body().size());
+                    handleBookingResponse(response);
                 } else {
-                    Log.e(TAG, "API Error: " + response.code() + " - " + response.message());
-                    showEmptyState("Failed to load bookings. Please try again.");
+                    Log.e("DEBUG_", "Empty/Failed Response: " + response.code());
+                    showEmptyState("No bookings found.");
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call<List<ViewBookingModel>> call, @NonNull Throwable t) {
                 loadingDialog.dismiss();
-                Log.e(TAG, "Network Error: " + t.getMessage(), t);
+                Log.e("DEBUG_", "Network Error: " + t.getMessage(), t);
                 showEmptyState("Network error. Please check your connection.");
             }
         });
     }
+
+
+    private void handleBookingResponse(Response<List<ViewBookingModel>> response) {
+        if (response.isSuccessful() && response.body() != null) {
+            bookingList = response.body();
+            Log.d(TAG, "✅ Bookings fetched: " + bookingList.size());
+
+            for (ViewBookingModel b : bookingList) {
+                Log.d(TAG, "Booking -> Dept: " + b.getDepartment() +
+                        ", Date: " + b.getSlotDate() +
+                        ", Time: " + b.getTimeSlot());
+            }
+
+            filteredList.clear();
+            filteredList.addAll(bookingList);
+
+            if (bookingList.isEmpty()) {
+                showEmptyState("No bookings found");
+            } else {
+                hideEmptyState();
+                if (selectedDepartmentId == -1 && selectedDateId == -1 && selectedTimeId == -1) {
+                    extractFilterData();
+                    updateSpinnerOptions();
+                }
+                adapter.notifyDataSetChanged();
+                updateResultsCount();
+            }
+        } else {
+            Log.e(TAG, "❌ API Error: " + response.code() + " - " + response.message());
+            showEmptyState("Failed to load bookings. Please try again.");
+        }
+    }
+
 
     private List<Department> departments = new ArrayList<>();
     private void loadDepartments() {
@@ -304,7 +339,8 @@ public class ViewBookingList extends Fragment {
                 if (response.isSuccessful() && response.body() != null) {
                     // ✅ assign to the field, not a local var
                     departments = response.body();
-
+                    Log.d("DEBUG_", "Dates fetched: " + departments.size());
+                    Log.d("DEBUG_", "Departments fetched: " + departments.size());
                     List<String> names = new ArrayList<>();
                     names.add("All Departments");
                     for (Department d : departments) {
@@ -330,6 +366,7 @@ public class ViewBookingList extends Fragment {
             }
         });
     }
+
     private  List<DateSlot> dateSlots = new ArrayList<>();
     private void loadDates(int departmentId) {
         ApiInterface api = ApiClient.getClient().create(ApiInterface.class);
