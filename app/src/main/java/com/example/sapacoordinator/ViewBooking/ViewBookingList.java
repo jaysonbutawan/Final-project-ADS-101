@@ -262,6 +262,34 @@ public class ViewBookingList extends Fragment {
         });
     }
 
+    private void loadDates(int departmentId) {
+        ApiInterface api = ApiClient.getClient().create(ApiInterface.class);
+        Call<List<SlotDate>> call = api.getDates(schoolId, departmentId);
+
+        call.enqueue(new Callback<>() {
+            @Override
+            public void onResponse(@NonNull Call<List<SlotDate>> call, @NonNull Response<List<SlotDate>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    List<SlotDate> dates = response.body();
+                    List<String> dateList = new ArrayList<>();
+                    dateList.add("All Dates");
+                    for (SlotDate d : dates) {
+                        dateList.add(d.getSlotDate());
+                    }
+                    ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(),
+                            android.R.layout.simple_spinner_item, dateList);
+                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    dateSpinner.setAdapter(adapter);
+                }
+            }
+            @Override
+            public void onFailure(@NonNull Call<List<SlotDate>> call, @NonNull Throwable t) {
+                Log.e(TAG, "Error fetching dates", t);
+            }
+        });
+    }
+
+
     /**
      * Helper method to get hospital ID from existing booking data
      * This assumes your booking data contains hospital information

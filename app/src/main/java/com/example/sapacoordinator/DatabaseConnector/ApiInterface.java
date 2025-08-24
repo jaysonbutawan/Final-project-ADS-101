@@ -115,8 +115,7 @@ public interface ApiInterface {
     Call<TimeSlotCapacityResponse> checkTimeSlotCapacity(
             @Query("time_slot_id") int timeSlotId
     );
-
-    @GET("get_departments.php")
-    Call<List<DepartmentFilter>> getDilterDepartments(@Query("school_id") int schoolId);
+//    @GET("get_departments.php")
+//    Call<List<DepartmentFilter>> getDilterDepartments(@Query("school_id") int schoolId);
 
 }
