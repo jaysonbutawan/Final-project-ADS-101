@@ -22,6 +22,8 @@ import com.example.sapacoordinator.DatabaseConnector.ApiClient;
 import com.example.sapacoordinator.DatabaseConnector.ApiInterface;
 import com.example.sapacoordinator.HospitalComponents.DepartmentComponents.Department;
 import com.example.sapacoordinator.HospitalComponents.TimeSlotsComponents.DateSlot;
+import com.example.sapacoordinator.HospitalComponents.TimeSlotsComponents.TimeSlotList;
+import com.example.sapacoordinator.HospitalComponents.TimeSlotsComponents.TimeSlotModel;
 import com.example.sapacoordinator.R;
 
 import java.util.ArrayList;
@@ -45,6 +47,8 @@ public class ViewBookingList extends Fragment {
     private Spinner departmentSpinner, timeSpinner, dateSpinner;
     private Button applyFiltersButton;
     private int schoolId;
+    private int hospitalId;
+    private int departmentId;
 
     private static final String TAG = "ViewBookingList";
 
@@ -53,16 +57,14 @@ public class ViewBookingList extends Fragment {
     private List<String> allDates;
     private List<String> allTimes;
 
-    private int departmentId;
-
-    public static ViewBookingList newInstance(int schoolId,int hospitalId, int departmentId) {
+    public static ViewBookingList newInstance(int schoolId, int hospitalId, int departmentId) {
         ViewBookingList fragment = new ViewBookingList();
-         Bundle args = new Bundle();
-         args.putInt("hospital_id", hospitalId);
-         args.putInt("school_id", schoolId);
-            args.putInt("department_id", departmentId);
-         fragment.setArguments(args);
-         return fragment;
+        Bundle args = new Bundle();
+        args.putInt("hospital_id", hospitalId);
+        args.putInt("school_id", schoolId);
+        args.putInt("department_id", departmentId);
+        fragment.setArguments(args);
+        return fragment;
     }
 
     @Override
@@ -70,6 +72,8 @@ public class ViewBookingList extends Fragment {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             schoolId = getArguments().getInt("school_id", -1);
+            hospitalId = getArguments().getInt("hospital_id", -1);
+            departmentId = getArguments().getInt("department_id", -1);
         }
     }
 
@@ -144,35 +148,59 @@ public class ViewBookingList extends Fragment {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                     if (position == 0) {
-                        // "All Departments" selected
-                        dateSpinner.setAdapter(null); // clear dates
-                        timeSpinner.setAdapter(null); // clear times
+                        // "All Departments"
+                        setupEmptyDateSpinner();
+                        setupEmptyTimeSpinner();
                         applyFilters();
                         return;
                     }
 
-                    // ✅ Get selected department object
-                    Department selectedDept = departments.get(position - 1); // -1 because of "All Departments"
+                    // ✅ Use the departments list populated in loadDepartments()
+                    Department selectedDept = departments.get(position - 1); // -1 for "All Departments"
                     int departmentId = selectedDept.getDepartment_id();
 
-                    // ✅ Load dates for this department
+                    Log.d(TAG, "User selected Department: " + selectedDept.getSection_name() +
+                            " (ID: " + departmentId + ")");
+
+                    // ✅ Now load dates for THIS department
                     loadDates(departmentId);
 
-                    // Reset times until a date is selected
-                    timeSpinner.setAdapter(null);
+                    // Reset times
+                    setupEmptyTimeSpinner();
                 }
 
                 @Override
                 public void onNothingSelected(AdapterView<?> parent) {}
             });
+
         }
 
         if (dateSpinner != null) {
             dateSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                    String selectedDate = parent.getItemAtPosition(position).toString();
+                    if (position == 0) {
+                        // "All Dates"
+                        setupEmptyTimeSpinner();
+                        applyFilters();
+                        return;
+                    }
+
+                    String selectedDate = parent.getSelectedItem().toString();
                     Log.d(TAG, "Selected Date: " + selectedDate);
+
+                    // ✅ Find the DateSlot object
+                    DateSlot selectedSlot = dateSlots.get(position - 1); // offset for "All Dates"
+                    int slotDateId = selectedSlot.getSlotDateId(); // make sure your model has this field
+                    int selectedDeptId = departmentId; // fallback
+
+                    if (departmentSpinner.getSelectedItemPosition() > 0) {
+                        Department selectedDept = departments.get(departmentSpinner.getSelectedItemPosition() - 1);
+                        selectedDeptId = selectedDept.getDepartment_id();
+                    }
+
+                    Log.d(TAG, "Loading times for DeptID: " + selectedDeptId + " SlotDateID: " + slotDateId);
+                    loadTimes(slotDateId);
 
                     applyFilters();
                 }
@@ -186,8 +214,20 @@ public class ViewBookingList extends Fragment {
             timeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                    String selectedTime = parent.getItemAtPosition(position).toString();
+                    if (position == 0) {
+                        // "All Times"
+                        applyFilters();
+                        return;
+                    }
+
+                    String selectedTime = parent.getSelectedItem().toString();
                     Log.d(TAG, "Selected Time: " + selectedTime);
+
+                    // ✅ Get the selected time slot object
+                    TimeSlotModel selectedSlot = timeSlots.get(position - 1); // offset for "All Times"
+                    int slotTimeId = selectedSlot.getTime_slot_id();
+
+                    Log.d(TAG, "Selected TimeSlotID: " + slotTimeId);
 
                     applyFilters();
                 }
@@ -197,11 +237,12 @@ public class ViewBookingList extends Fragment {
             });
         }
 
+
+
         if (applyFiltersButton != null) {
             applyFiltersButton.setOnClickListener(v -> applyFilters());
         }
     }
-
 
     private void loadBookingDataFromAPI() {
         if (schoolId == -1) {
@@ -255,9 +296,7 @@ public class ViewBookingList extends Fragment {
     private List<Department> departments = new ArrayList<>();
     private void loadDepartments() {
         ApiInterface api = ApiClient.getClient().create(ApiInterface.class);
-        int hospitalId = getHospitalIdFromBookings();
-
-        Call<List<Department>> call = api.getDepartments(hospitalId);
+        Call<List<Department>> call = api.getDepartments(getHospitalIdFromBookings());
 
         call.enqueue(new Callback<>() {
             @Override
@@ -291,7 +330,7 @@ public class ViewBookingList extends Fragment {
             }
         });
     }
-
+    private  List<DateSlot> dateSlots = new ArrayList<>();
     private void loadDates(int departmentId) {
         ApiInterface api = ApiClient.getClient().create(ApiInterface.class);
         Call<List<DateSlot>> call = api.getDateSlots(departmentId);
@@ -300,20 +339,25 @@ public class ViewBookingList extends Fragment {
             @Override
             public void onResponse(@NonNull Call<List<DateSlot>> call, @NonNull Response<List<DateSlot>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    List<DateSlot> dates = response.body();
-                    Log.d("DEBUG_", "Dates fetched: " + dates.size());
+                    dateSlots = response.body(); // ✅ keep full objects
+
+                    Log.d(TAG, "Dates fetched: " + dateSlots.size());
+
                     List<String> dateList = new ArrayList<>();
                     dateList.add("All Dates");
-                    for (DateSlot d : dates) {
-                        Log.d("DEBUG_", "Loaded date: " + d.getSlotDate());
+
+                    for (DateSlot d : dateSlots) {
+                        Log.d(TAG, "Loaded date: " + d.getSlotDate());
                         dateList.add(d.getSlotDate());
                     }
+
                     ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(),
                             android.R.layout.simple_spinner_item, dateList);
                     adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                     dateSpinner.setAdapter(adapter);
                 }
             }
+
             @Override
             public void onFailure(@NonNull Call<List<DateSlot>> call, @NonNull Throwable t) {
                 Log.e(TAG, "Error fetching dates", t);
@@ -327,45 +371,57 @@ public class ViewBookingList extends Fragment {
      * This assumes your booking data contains hospital information
      */
     private int getHospitalIdFromBookings() {
-        // If you have hospital ID in your booking data, extract it here
-        // For now, returning a default value - you'll need to modify this based on your data structure
+        // Use the hospitalId passed from the activity first
+        if (hospitalId != -1) {
+            Log.d(TAG, "Using hospitalId from arguments: " + hospitalId);
+            return hospitalId;
+        }
 
-        // Option 1: If you pass hospital ID from previous activity
-        return getActivity() != null ? getActivity().getIntent().getIntExtra("hospital_id", 1) : 1;
+        // Fallback: If you pass hospital ID from previous activity
+        int intentHospitalId = getActivity() != null ? getActivity().getIntent().getIntExtra("hospital_id", -1) : -1;
+        if (intentHospitalId != -1) {
+            Log.d(TAG, "Using hospitalId from intent: " + intentHospitalId);
+            return intentHospitalId;
+        }
 
-        // Option 2: If you have it in your ViewBookingModel, uncomment below:
-        // if (bookingList != null && !bookingList.isEmpty()) {
-        //     return bookingList.get(0).getHospitalId(); // Assuming you have this field
-        // }
-        // return 1; // Default hospital ID
+        // Last resort: Use default hospital ID
+        Log.w(TAG, "No hospital ID found, using default value 1");
+        return 1;
     }
 
-//    private void loadTimes(int departmentId, int slotDateId) {
-//        ApiInterface api = ApiClient.getClient().create(ApiInterface.class);
-//        Call<List<TimeSlotModel>> call = api.getTimes(schoolId, slotDateId);
-//
-//        call.enqueue(new Callback<>() {
-//            @Override
-//            public void onResponse(@NonNull Call<List<TimeSlot>> call, @NonNull Response<List<TimeSlot>> response) {
-//                if (response.isSuccessful() && response.body() != null) {
-//                    List<TimeSlot> times = response.body();
-//                    List<String> timeList = new ArrayList<>();
-//                    timeList.add("All Times");
-//                    for (TimeSlot t : times) {
-//                        timeList.add(t.getStartTime() + " - " + t.getEndTime());
-//                    }
-//                    ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(),
-//                            android.R.layout.simple_spinner_item, timeList);
-//                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-//                    timeSpinner.setAdapter(adapter);
-//                }
-//            }
-//            @Override
-//            public void onFailure(@NonNull Call<List<TimeSlot>> call, @NonNull Throwable t) {
-//                Log.e(TAG, "Error fetching times", t);
-//            }
-//        });
-//    }
+    private List<TimeSlotModel> timeSlots = new ArrayList<>();
+    private void loadTimes( int slotDateId) {
+        ApiInterface api = ApiClient.getClient().create(ApiInterface.class);
+        Call<List<TimeSlotModel>> call = api.getTimeSlots(slotDateId);
+
+        call.enqueue(new Callback<>() {
+            @Override
+            public void onResponse(@NonNull Call<List<TimeSlotModel>> call, @NonNull Response<List<TimeSlotModel>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    timeSlots = response.body(); // ✅ keep the full objects
+
+                    List<String> timeList = new ArrayList<>();
+                    timeList.add("All Times");
+
+                    for (TimeSlotModel t : timeSlots) {
+                        timeList.add(t.getStart_time() + " - " + t.getEnd_time());
+                    }
+
+                    ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(),
+                            android.R.layout.simple_spinner_item, timeList);
+                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    timeSpinner.setAdapter(adapter);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<TimeSlotModel>> call, Throwable t) {
+                Log.e(TAG, "Error fetching times", t);
+            }
+        });
+    }
+
+
 
 
     private void extractFilterData() {
@@ -788,5 +844,27 @@ public class ViewBookingList extends Fragment {
      */
     public int getFilteredBookingCount() {
         return filteredList != null ? filteredList.size() : 0;
+    }
+
+    private void setupEmptyDateSpinner() {
+        if (dateSpinner != null) {
+            List<String> dates = new ArrayList<>();
+            dates.add("All Dates");
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(),
+                    android.R.layout.simple_spinner_item, dates);
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            dateSpinner.setAdapter(adapter);
+        }
+    }
+
+    private void setupEmptyTimeSpinner() {
+        if (timeSpinner != null) {
+            List<String> times = new ArrayList<>();
+            times.add("All Times");
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(),
+                    android.R.layout.simple_spinner_item, times);
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            timeSpinner.setAdapter(adapter);
+        }
     }
 }

@@ -41,7 +41,7 @@ public class ViewBookingAdapter extends RecyclerView.Adapter<ViewBookingAdapter.
         holder.tvStudentName.setText(booking.getStudentName());
         holder.tvStudentCode.setText("ID: " + booking.getStudentCode());
         holder.tvDepartment.setText(booking.getDepartment());
-        holder.tvAddedDate.setText(booking.getAddedDate());
+        holder.tvBookingDate.setText(booking.getSlotDate()); // Fixed: use getSlotDate() instead of getAddedDate()
         holder.tvTimeSlot.setText(booking.getTimeSlot());
         holder.tvStatus.setText("Status: " + booking.getAppointmentStatus());
     }
@@ -52,14 +52,14 @@ public class ViewBookingAdapter extends RecyclerView.Adapter<ViewBookingAdapter.
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvStudentName, tvStudentCode, tvDepartment, tvAddedDate, tvTimeSlot, tvStatus;
+        TextView tvStudentName, tvStudentCode, tvDepartment, tvBookingDate, tvTimeSlot, tvStatus; // Fixed: tvAddedDate -> tvBookingDate
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             tvStudentName = itemView.findViewById(R.id.tvStudentName);
             tvStudentCode = itemView.findViewById(R.id.tvStudentCode);
             tvDepartment = itemView.findViewById(R.id.tvDepartment);
-            tvAddedDate = itemView.findViewById(R.id.tvAddedDate);
+            tvBookingDate = itemView.findViewById(R.id.tvBookingDate); // Fixed: tvAddedDate -> tvBookingDate
             tvTimeSlot = itemView.findViewById(R.id.tvTimeSlot);
             tvStatus = itemView.findViewById(R.id.tvStatus);
         }
