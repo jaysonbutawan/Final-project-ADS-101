@@ -1,6 +1,6 @@
 package com.example.sapacoordinator.DatabaseConnector;
 
-import com.example.sapacoordinator.ViewBookingComponents.ViewBookingModel;
+import com.example.sapacoordinator.ViewBookingComponents.ViewBooking.ViewBookingModel;
 import com.example.sapacoordinator.HospitalComponents.DepartmentComponents.Department;
 import com.example.sapacoordinator.HospitalComponents.Hospital;
 import com.example.sapacoordinator.HospitalComponents.TimeSlotsComponents.DateSlot;

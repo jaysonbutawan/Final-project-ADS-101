@@ -1,4 +1,4 @@
-package com.example.sapacoordinator.ViewBookingComponents;
+package com.example.sapacoordinator.ViewBookingComponents.ViewBooking;
 
 import android.annotation.SuppressLint;
 import android.content.Context;

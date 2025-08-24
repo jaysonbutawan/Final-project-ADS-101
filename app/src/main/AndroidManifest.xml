@@ -20,7 +20,7 @@
             android:name=".ViewBookingComponents.ChooseActionBooking"
             android:exported="false" />
         <activity
-            android:name=".ViewBookingComponents.ViewBookingActivity"
+            android:name=".ViewBookingComponents.ViewBooking.ViewBookingActivity"
             android:exported="false" />
         <activity
             android:name=".HospitalComponents.TimeSlotsComponents.SelectStudentActivity"

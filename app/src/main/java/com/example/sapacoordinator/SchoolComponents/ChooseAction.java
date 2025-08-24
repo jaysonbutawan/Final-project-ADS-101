@@ -23,7 +23,7 @@ import com.example.sapacoordinator.HospitalComponents.HospitalActivity;
 import com.example.sapacoordinator.R;
 import com.example.sapacoordinator.SchoolComponents.StudentsComponents.StudentActivity;
 import com.example.sapacoordinator.SchoolComponents.StudentsComponents.StudentsRegistration;
-import com.example.sapacoordinator.ViewBookingComponents.ViewBookingActivity;
+import com.example.sapacoordinator.ViewBookingComponents.ViewBooking.ViewBookingActivity;
 
 import retrofit2.Call;
 import retrofit2.Callback;
