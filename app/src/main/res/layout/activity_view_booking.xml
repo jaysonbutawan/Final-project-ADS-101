@@ -7,7 +7,7 @@
     android:padding="16dp"
     android:background="@color/white"
     android:orientation="vertical"
-    tools:context=".ViewBooking.ViewBookingActivity">
+    tools:context=".ViewBookingComponents.ViewBookingActivity">
 
     <!-- Header -->
     <TextView

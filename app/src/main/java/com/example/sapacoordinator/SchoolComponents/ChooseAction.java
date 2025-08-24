@@ -1,11 +1,9 @@
 package com.example.sapacoordinator.SchoolComponents;
 
-import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -25,7 +23,7 @@ import com.example.sapacoordinator.HospitalComponents.HospitalActivity;
 import com.example.sapacoordinator.R;
 import com.example.sapacoordinator.SchoolComponents.StudentsComponents.StudentActivity;
 import com.example.sapacoordinator.SchoolComponents.StudentsComponents.StudentsRegistration;
-import com.example.sapacoordinator.ViewBooking.ViewBookingActivity;
+import com.example.sapacoordinator.ViewBookingComponents.ViewBookingActivity;
 
 import retrofit2.Call;
 import retrofit2.Callback;

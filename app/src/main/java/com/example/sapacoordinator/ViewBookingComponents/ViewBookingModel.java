@@ -1,4 +1,4 @@
-package com.example.sapacoordinator.ViewBooking;
+package com.example.sapacoordinator.ViewBookingComponents;
 
 import com.google.gson.annotations.SerializedName;
 
