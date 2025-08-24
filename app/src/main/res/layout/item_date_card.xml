@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="150dp"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="8dp"
+    app:strokeColor="@color/Blue"
+    app:strokeWidth="1dp"
+    app:cardCornerRadius="4dp">
+
+    <TextView
+        android:id="@+id/tvDate"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:text="Thu, Aug 14"
+        android:textSize="16sp"
+        android:padding="16dp"
+        tools:text="Thu, Aug 14"/>
+</com.google.android.material.card.MaterialCardView>

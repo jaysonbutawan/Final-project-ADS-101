@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/select_student"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    tools:context=".HospitalComponents.TimeSlotsComponents.SelectStudentActivity">
+
+    <!-- Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Select Students for Booking"
+            android:textStyle="bold"
+            android:textSize="20sp"
+            android:textColor="@color/black"
+            android:layout_marginTop="4dp"/>
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Available Students"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp"
+        android:layout_marginTop="16dp"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Tap to select students for the training session"
+        android:textSize="15sp"
+        android:textColor="@color/Blue"
+        android:layout_marginBottom="8dp"/>
+
+    <!-- Available Students List -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvAvailableStudent"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"/>
+
+    <!-- Selection Summary -->
+    <TextView
+        android:id="@+id/tvSelectionSummary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="No students selected"
+        android:textSize="14sp"
+        android:textColor="@color/gray_600"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp"
+        android:gravity="center"/>
+
+    <!-- Continue Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnContinueBooking"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Continue to Final Booking"
+        app:icon="@drawable/next"
+        app:iconGravity="textEnd"
+        app:iconPadding="8dp"
+        android:enabled="false"
+        style="@style/Widget.MaterialComponents.Button"
+        app:cornerRadius="8dp"/>
+
+</LinearLayout>

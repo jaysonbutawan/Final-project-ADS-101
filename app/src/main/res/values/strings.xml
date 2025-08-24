@@ -1,0 +1,41 @@
+<resources>
+    <string name="app_name">SapaCoordinator</string>
+    <string name="todo">todo</string>
+    <string name="welcome">Welcome</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="log_in">Log in</string>
+    <string name="don_t_have_an_account_sign_up">Don\'t have an account? Sign up</string>
+    <string name="firstname">Firstname</string>
+    <string name="create_account">Create Account</string>
+    <string name="lastname">Lastname</string>
+    <string name="register">Register</string>
+    <string name="already_have_an_account_log_in">Already have an account? Log in</string>
+    <string name="notifications">Notifications</string>
+    <string name="profile">Profile</string>
+    <string name="home">Home</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="address_information">Address Information</string>
+    <string name="school_address">School Address *</string>
+    <string name="enter_school_address">Enter school address</string>
+    <string name="contact_information">Contact Information</string>
+    <string name="phone_number">Phone Number</string>
+    <string name="_09357440014">09357440014</string>
+    <string name="email_address">Email Address</string>
+    <string name="school_example_com">school@example.com</string>
+    <string name="add_school">Add School</string>
+    <string name="schedule_your_appointment">Schedule your appointment</string>
+    <string name="book_appointment">Book Appointment</string>
+    <string name="register_new_school">Register new school</string>
+    <string name="school_name">School Name</string>
+    <string name="address">Address</string>
+    <string name="no_approved_schools">No approved schools</string>
+    <string name="no_schools">No schools</string>
+    <string name="add_student">Add Student</string>
+    <string name="_63_9123456789">63+ 9123456789</string>
+    <string name="juandelacruz_example_com">juandelacruz@example.com</string>
+    <string name="select_an_available_time_slots">Select an available time slots</string>
+    <string name="laoding">Laoding...</string>
+    <string name="contact_info">Contact Info</string>
+</resources>
