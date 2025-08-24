@@ -26,8 +26,10 @@ public class ViewBookingActivity extends AppCompatActivity {
             return insets;
         });
         int schoolId = getIntent().getIntExtra("school_id", -1);
+        int hospitalId = getIntent().getIntExtra("hospital_id", -1);
+        int departmentId = getIntent().getIntExtra("department_id", -1);
         if (savedInstanceState == null) {
-            ViewBookingList viewBookingList = ViewBookingList.newInstance(schoolId);
+            ViewBookingList viewBookingList = ViewBookingList.newInstance(schoolId, hospitalId,departmentId);
 
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
             transaction.replace(R.id.emptyState, viewBookingList);

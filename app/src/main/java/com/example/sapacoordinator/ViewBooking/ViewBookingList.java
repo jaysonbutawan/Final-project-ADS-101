@@ -21,6 +21,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.sapacoordinator.DatabaseConnector.ApiClient;
 import com.example.sapacoordinator.DatabaseConnector.ApiInterface;
 import com.example.sapacoordinator.HospitalComponents.DepartmentComponents.Department;
+import com.example.sapacoordinator.HospitalComponents.TimeSlotsComponents.DateSlot;
 import com.example.sapacoordinator.R;
 
 import java.util.ArrayList;
@@ -44,6 +45,7 @@ public class ViewBookingList extends Fragment {
     private Spinner departmentSpinner, timeSpinner, dateSpinner;
     private Button applyFiltersButton;
     private int schoolId;
+
     private static final String TAG = "ViewBookingList";
 
     // For cascading filter data
@@ -51,12 +53,16 @@ public class ViewBookingList extends Fragment {
     private List<String> allDates;
     private List<String> allTimes;
 
-    public static ViewBookingList newInstance(int schoolId) {
+    private int departmentId;
+
+    public static ViewBookingList newInstance(int schoolId,int hospitalId, int departmentId) {
         ViewBookingList fragment = new ViewBookingList();
-        Bundle args = new Bundle();
-        args.putInt("school_id", schoolId);
-        fragment.setArguments(args);
-        return fragment;
+         Bundle args = new Bundle();
+         args.putInt("hospital_id", hospitalId);
+         args.putInt("school_id", schoolId);
+            args.putInt("department_id", departmentId);
+         fragment.setArguments(args);
+         return fragment;
     }
 
     @Override
@@ -82,7 +88,7 @@ public class ViewBookingList extends Fragment {
         setupSpinners();
         setupFilterListeners();
         loadBookingDataFromAPI();
-        loadDepartments(); // Add this call to load departments from API
+        loadDepartments();
     }
 
     private void initializeViews(View view) {
@@ -137,10 +143,23 @@ public class ViewBookingList extends Fragment {
             departmentSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                    String selectedDepartment = parent.getItemAtPosition(position).toString();
-                    updateDateSpinner(selectedDepartment);
-                    updateTimeSpinner(selectedDepartment, "All Dates");
-                    applyFilters();
+                    if (position == 0) {
+                        // "All Departments" selected
+                        dateSpinner.setAdapter(null); // clear dates
+                        timeSpinner.setAdapter(null); // clear times
+                        applyFilters();
+                        return;
+                    }
+
+                    // ✅ Get selected department object
+                    Department selectedDept = departments.get(position - 1); // -1 because of "All Departments"
+                    int departmentId = selectedDept.getDepartment_id();
+
+                    // ✅ Load dates for this department
+                    loadDates(departmentId);
+
+                    // Reset times until a date is selected
+                    timeSpinner.setAdapter(null);
                 }
 
                 @Override
@@ -153,8 +172,8 @@ public class ViewBookingList extends Fragment {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                     String selectedDate = parent.getItemAtPosition(position).toString();
-                    String selectedDepartment = departmentSpinner.getSelectedItem().toString();
-                    updateTimeSpinner(selectedDepartment, selectedDate);
+                    Log.d(TAG, "Selected Date: " + selectedDate);
+
                     applyFilters();
                 }
 
@@ -167,6 +186,9 @@ public class ViewBookingList extends Fragment {
             timeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    String selectedTime = parent.getItemAtPosition(position).toString();
+                    Log.d(TAG, "Selected Time: " + selectedTime);
+
                     applyFilters();
                 }
 
@@ -179,6 +201,7 @@ public class ViewBookingList extends Fragment {
             applyFiltersButton.setOnClickListener(v -> applyFilters());
         }
     }
+
 
     private void loadBookingDataFromAPI() {
         if (schoolId == -1) {
@@ -228,27 +251,34 @@ public class ViewBookingList extends Fragment {
             }
         });
     }
+
+    private List<Department> departments = new ArrayList<>();
     private void loadDepartments() {
         ApiInterface api = ApiClient.getClient().create(ApiInterface.class);
-        // Note: You need to get hospitalId from somewhere, for now using a placeholder
-        // You might need to pass hospitalId as a parameter or get it from your booking data
-        int hospitalId = getHospitalIdFromBookings(); // We'll implement this method
+        int hospitalId = getHospitalIdFromBookings();
 
         Call<List<Department>> call = api.getDepartments(hospitalId);
 
-        call.enqueue(new Callback<List<Department>>() {
+        call.enqueue(new Callback<>() {
             @Override
             public void onResponse(@NonNull Call<List<Department>> call, @NonNull Response<List<Department>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    List<Department> departments = response.body();
+                    // ✅ assign to the field, not a local var
+                    departments = response.body();
+
                     List<String> names = new ArrayList<>();
                     names.add("All Departments");
                     for (Department d : departments) {
-                        names.add(d.getSection_name()); // Fixed to use correct method name
+                        names.add(d.getSection_name());
                     }
-                    ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(),
-                            android.R.layout.simple_spinner_item, names);
+
+                    ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                            requireContext(),
+                            android.R.layout.simple_spinner_item,
+                            names
+                    );
                     adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
                     if (departmentSpinner != null) {
                         departmentSpinner.setAdapter(adapter);
                     }
@@ -264,16 +294,18 @@ public class ViewBookingList extends Fragment {
 
     private void loadDates(int departmentId) {
         ApiInterface api = ApiClient.getClient().create(ApiInterface.class);
-        Call<List<SlotDate>> call = api.getDates(schoolId, departmentId);
+        Call<List<DateSlot>> call = api.getDateSlots(departmentId);
 
         call.enqueue(new Callback<>() {
             @Override
-            public void onResponse(@NonNull Call<List<SlotDate>> call, @NonNull Response<List<SlotDate>> response) {
+            public void onResponse(@NonNull Call<List<DateSlot>> call, @NonNull Response<List<DateSlot>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    List<SlotDate> dates = response.body();
+                    List<DateSlot> dates = response.body();
+                    Log.d("DEBUG_", "Dates fetched: " + dates.size());
                     List<String> dateList = new ArrayList<>();
                     dateList.add("All Dates");
-                    for (SlotDate d : dates) {
+                    for (DateSlot d : dates) {
+                        Log.d("DEBUG_", "Loaded date: " + d.getSlotDate());
                         dateList.add(d.getSlotDate());
                     }
                     ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(),
@@ -283,7 +315,7 @@ public class ViewBookingList extends Fragment {
                 }
             }
             @Override
-            public void onFailure(@NonNull Call<List<SlotDate>> call, @NonNull Throwable t) {
+            public void onFailure(@NonNull Call<List<DateSlot>> call, @NonNull Throwable t) {
                 Log.e(TAG, "Error fetching dates", t);
             }
         });
@@ -516,6 +548,7 @@ public class ViewBookingList extends Fragment {
     public void refreshData() {
         loadBookingDataFromAPI();
         loadDepartments();
+        loadDates(departmentId);
     }
 
     // ===== NEW FUNCTIONS FOR RETRIEVING HIERARCHICAL DATA =====
@@ -719,7 +752,7 @@ public class ViewBookingList extends Fragment {
 
     /**
      * Programmatically set the time spinner selection
-     * @param timeSlot The time slot to select
+     * @param timeSlot The time slot to selectlo
      */
     public void setSelectedTime(String timeSlot) {
         if (timeSpinner != null && timeSlot != null) {
