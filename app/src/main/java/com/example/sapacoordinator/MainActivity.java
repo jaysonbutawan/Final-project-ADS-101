@@ -36,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
                 selectedFragment = new ProfileFragment();
             }
 
+
             if (selectedFragment != null) {
                 getSupportFragmentManager().beginTransaction().replace(R.id.nav_host_fragment, selectedFragment).commit();
                 return true;

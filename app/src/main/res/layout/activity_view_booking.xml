@@ -68,14 +68,13 @@
         android:layout_marginBottom="8dp"
         android:textColor="@color/black" />
 
-    <EditText
-        android:id="@+id/dateEditText"
+    <Spinner
+        android:id="@+id/dateSpinner"
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:layout_marginBottom="16dp"
-        android:hint="dd/mm/yyyy"
-        android:inputType="date"
-        android:background="@drawable/edittext_background" />
+        android:background="@drawable/spinner_background"
+        android:spinnerMode="dropdown" />
 
     <!-- Time Filter -->
     <TextView

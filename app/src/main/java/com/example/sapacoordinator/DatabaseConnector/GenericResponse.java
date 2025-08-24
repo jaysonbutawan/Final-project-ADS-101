@@ -9,7 +9,6 @@ public class GenericResponse {
     private int studentCount;
     private int user_id;
 
-    // Check if API returned success
     public boolean isSuccess() {
         return status != null &&
                 (status.equalsIgnoreCase("success") ||
@@ -20,11 +19,7 @@ public class GenericResponse {
     public String getMessage() {
         return message;
     }
-
-
-
     public int getStudent_count() { return studentCount; }
-
     public int getUserId() {
         return user_id;
     }
