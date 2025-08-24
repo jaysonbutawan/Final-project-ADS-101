@@ -107,15 +107,9 @@ public interface ApiInterface {
     );
     @GET("get_appointments.php")
     Call<List<ViewBookingModel>> getBookedStudents(
-            @Query("school_id") int schoolId
-    );
-
-    // Check time slot capacity and current bookings
-    @GET("check_time_slot_capacity.php")
-    Call<TimeSlotCapacityResponse> checkTimeSlotCapacity(
+            @Query("school_id") int schoolId,
+            @Query("department_id") int departmentId,
+            @Query("slot_date_id") int dateSlotId,
             @Query("time_slot_id") int timeSlotId
     );
-//    @GET("get_departments.php")
-//    Call<List<DepartmentFilter>> getDilterDepartments(@Query("school_id") int schoolId);
-
 }
