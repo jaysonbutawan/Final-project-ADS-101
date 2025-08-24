@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -20,9 +21,11 @@ import com.example.sapacoordinator.DatabaseConnector.ApiClient;
 import com.example.sapacoordinator.DatabaseConnector.ApiInterface;
 import com.example.sapacoordinator.DatabaseConnector.GenericResponse;
 import com.example.sapacoordinator.HospitalComponents.HospitalActivity;
+import com.example.sapacoordinator.HospitalComponents.HospitalList;
 import com.example.sapacoordinator.R;
 import com.example.sapacoordinator.SchoolComponents.StudentsComponents.StudentActivity;
 import com.example.sapacoordinator.SchoolComponents.StudentsComponents.StudentsRegistration;
+import com.example.sapacoordinator.ViewBookingComponents.ChooseActionBooking;
 import com.example.sapacoordinator.ViewBookingComponents.ViewBooking.ViewBookingActivity;
 
 import retrofit2.Call;
@@ -105,9 +108,10 @@ public class ChooseAction extends AppCompatActivity {
             startActivity(intent);
         });
 
+
         LinearLayout tvAppointmentsCount = findViewById(R.id.appointmentsCountContainer);
         tvAppointmentsCount.setOnClickListener(v -> {
-            Intent intent = new Intent(ChooseAction.this, ViewBookingActivity.class);
+            Intent intent = new Intent(ChooseAction.this, ChooseActionBooking.class);
             intent.putExtra("school_id", schoolId);
             startActivity(intent);
             fetchStudentCount();

@@ -290,7 +290,7 @@ public class ViewBookingList extends Fragment {
             public void onFailure(@NonNull Call<List<ViewBookingModel>> call, @NonNull Throwable t) {
                 loadingDialog.dismiss();
                 Log.e("DEBUG_", "Network Error: " + t.getMessage(), t);
-                showEmptyState("Network error. Please check your connection.");
+                showEmptyState("Please check your connection.");
             }
         });
     }
@@ -331,7 +331,7 @@ public class ViewBookingList extends Fragment {
     private List<Department> departments = new ArrayList<>();
     private void loadDepartments() {
         ApiInterface api = ApiClient.getClient().create(ApiInterface.class);
-        Call<List<Department>> call = api.getDepartments(getHospitalIdFromBookings());
+        Call<List<Department>> call = api.getDepartments(hospitalId);
 
         call.enqueue(new Callback<>() {
             @Override
@@ -403,10 +403,6 @@ public class ViewBookingList extends Fragment {
     }
 
 
-    /**
-     * Helper method to get hospital ID from existing booking data
-     * This assumes your booking data contains hospital information
-     */
     private int getHospitalIdFromBookings() {
         // Use the hospitalId passed from the activity first
         if (hospitalId != -1) {
@@ -635,11 +631,6 @@ public class ViewBookingList extends Fragment {
         }
     }
 
-    public void refreshData() {
-        loadBookingDataFromAPI();
-        loadDepartments();
-        loadDates(departmentId);
-    }
 
     private void setupEmptyDateSpinner() {
         if (dateSpinner != null) {

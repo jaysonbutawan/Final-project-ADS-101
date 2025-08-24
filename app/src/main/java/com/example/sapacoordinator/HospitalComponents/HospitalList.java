@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.sapacoordinator.DatabaseConnector.ApiClient;
 import com.example.sapacoordinator.DatabaseConnector.ApiInterface;
 import com.example.sapacoordinator.R;
+import com.example.sapacoordinator.ViewBookingComponents.ChooseActionBookingAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,19 +32,24 @@ public class HospitalList extends Fragment {
 
     private RecyclerView recyclerView;
     private TextView tvEmptyMessage;
-    private HospitalAdapter adapter;
+    private RecyclerView.Adapter<?> adapter; // Changed to generic type
     private final List<Hospital> hospitalList = new ArrayList<>();
-    private int schoolId; // ✅ Add school_id field
+    private int schoolId;
+    private boolean useBookingAdapter = false; // Flag to determine which adapter to use
 
     public HospitalList() {
-
     }
 
-    // ✅ Updated factory method to accept school_id
     public static HospitalList newInstance(int schoolId) {
+        return newInstance(schoolId, false); // Default to HospitalAdapter
+    }
+
+    // Updated factory method with adapter selection parameter
+    public static HospitalList newInstance(int schoolId, boolean useBookingAdapter) {
         HospitalList fragment = new HospitalList();
         Bundle args = new Bundle();
         args.putInt("school_id", schoolId);
+        args.putBoolean("use_booking_adapter", useBookingAdapter);
         fragment.setArguments(args);
         return fragment;
     }
@@ -54,17 +60,24 @@ public class HospitalList extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_hospital_list, container, false);
 
-        // ✅ Get school_id from arguments
+        // Get arguments
         if (getArguments() != null) {
             schoolId = getArguments().getInt("school_id", -1);
+            useBookingAdapter = getArguments().getBoolean("use_booking_adapter", false);
         }
 
         recyclerView = view.findViewById(R.id.rvHospitals);
         tvEmptyMessage = view.findViewById(R.id.tvEmptyMessage);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-        // ✅ Pass school_id to adapter
-        adapter = new HospitalAdapter(hospitalList, requireContext(), schoolId);
+
+        // Choose adapter based on flag
+        if (useBookingAdapter) {
+            adapter = new ChooseActionBookingAdapter(hospitalList, requireContext(), schoolId);
+        } else {
+            adapter = new HospitalAdapter(hospitalList, requireContext(), schoolId);
+        }
+
         recyclerView.setAdapter(adapter);
 
         loadHospitals();

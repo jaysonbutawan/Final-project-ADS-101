@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/student_registration"
@@ -13,7 +13,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
-    android:background="@color/white">;
+    android:background="@color/white"
+    tools:ignore="ExtraText">;
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -234,13 +235,15 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_width="350dp"
+                android:layout_height="wrap_content"
+                android:gravity="center">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etEmailAddress"
-                    android:layout_width="match_parent"
+                    android:layout_width="350dp"
                     android:layout_height="wrap_content"
+                    android:gravity="center"
                     android:hint="@string/juandelacruz_example_com"
                     android:inputType="textEmailAddress"/>
             </com.google.android.material.textfield.TextInputLayout>
@@ -252,8 +255,9 @@
             android:layout_height="65dp"
             android:layout_gravity="center"
             android:text="@string/add_student"
-            android:textSize="14sp"
+            android:textSize="18sp"
+            android:textStyle="bold"
             android:backgroundTint="@color/Blue"/>
     </LinearLayout>
 </ScrollView>
-</RelativeLayout>
+</LinearLayout>

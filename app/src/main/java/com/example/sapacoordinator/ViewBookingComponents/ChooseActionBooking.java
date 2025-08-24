@@ -7,7 +7,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.fragment.app.FragmentTransaction;
 
+import com.example.sapacoordinator.HospitalComponents.HospitalList;
 import com.example.sapacoordinator.R;
 
 public class ChooseActionBooking extends AppCompatActivity {
@@ -22,5 +24,15 @@ public class ChooseActionBooking extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+        int schoolId = getIntent().getIntExtra("school_id", -1);
+
+        if (savedInstanceState == null) {
+            HospitalList hospitalListFragment = HospitalList.newInstance(schoolId,true);
+
+            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+            transaction.replace(R.id.emptyState, hospitalListFragment);
+            transaction.commit();
+
+        }
     }
 }
