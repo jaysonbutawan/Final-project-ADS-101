@@ -1,6 +1,6 @@
 package com.example.sapacoordinator.ViewBookingComponents.ViewBooking;
-
 import android.annotation.SuppressLint;
+import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sapacoordinator.DatabaseConnector.ApiClient;
 import com.example.sapacoordinator.DatabaseConnector.ApiInterface;
+import com.example.sapacoordinator.DatabaseConnector.GenericResponse;
 import com.example.sapacoordinator.HospitalComponents.DepartmentComponents.Department;
 import com.example.sapacoordinator.HospitalComponents.TimeSlotsComponents.DateSlot;
 import com.example.sapacoordinator.HospitalComponents.TimeSlotsComponents.TimeSlotModel;
@@ -42,9 +43,10 @@ public class ViewBookingList extends Fragment {
     private ViewBookingAdapter adapter;
     private List<ViewBookingModel> bookingList;
     private List<ViewBookingModel> filteredList;
-    private TextView resultsCountTextView, tvEmptyMessage;
+    private TextView resultsCountTextView, tvEmptyMessage, selectionCountTextView;
     private Spinner departmentSpinner, timeSpinner, dateSpinner;
     private Button applyFiltersButton;
+    private Button cancelSelectedButton;
     private int schoolId;
     private int hospitalId;
     private int departmentId;
@@ -59,6 +61,17 @@ public class ViewBookingList extends Fragment {
     private List<String> allDepartments;
     private List<String> allDates;
     private List<String> allTimes;
+
+    public boolean isSelectionModeActive() {
+        return adapter != null && adapter.isSelectionMode();
+    }
+
+    public void exitSelectionMode() {
+        if (adapter != null) {
+            adapter.exitSelectionMode();
+        }
+    }
+
 
     public static ViewBookingList newInstance(int schoolId, int hospitalId, int departmentId) {
         ViewBookingList fragment = new ViewBookingList();
@@ -96,6 +109,13 @@ public class ViewBookingList extends Fragment {
         setupFilterListeners();
 //        loadBookingDataFromAPI();
         loadDepartments();
+        // Add this in onViewCreated of ViewBookingList.java
+        // Use the view parameter directly as the root view
+        view.setOnClickListener(v -> {
+            if (adapter != null && adapter.isSelectionMode()) {
+                adapter.exitSelectionMode();
+            }
+        });
     }
 
     private void initializeViews(View view) {
@@ -150,6 +170,11 @@ public class ViewBookingList extends Fragment {
             departmentSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    // Exit selection mode when user interacts with spinner
+                    if (adapter != null && adapter.isSelectionMode()) {
+                        adapter.exitSelectionMode();
+                    }
+
                     if (position == 0) {
                         selectedDepartmentId = -1;
                         setupEmptyDateSpinner();
@@ -166,6 +191,7 @@ public class ViewBookingList extends Fragment {
                     selectedDateId = -1;
                     selectedTimeId = -1;
                     setupEmptyTimeSpinner();
+                    applyFilters();
                 }
 
                 @Override
@@ -177,6 +203,11 @@ public class ViewBookingList extends Fragment {
             dateSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    // Exit selection mode when user interacts with spinner
+                    if (adapter != null && adapter.isSelectionMode()) {
+                        adapter.exitSelectionMode();
+                    }
+
                     if (position == 0) {
                         // "All Dates"
                         selectedDateId = -1;
@@ -205,6 +236,11 @@ public class ViewBookingList extends Fragment {
             timeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    // Exit selection mode when user interacts with spinner
+                    if (adapter != null && adapter.isSelectionMode()) {
+                        adapter.exitSelectionMode();
+                    }
+
                     if (position == 0) {
                         // "All Times"
                         selectedTimeId = -1;
@@ -226,28 +262,34 @@ public class ViewBookingList extends Fragment {
             });
         }
 
-        // ✅ Apply Filters Button - This will trigger loadBookingDataFromAPI with selected filters
         if (applyFiltersButton != null) {
             applyFiltersButton.setOnClickListener(v -> {
-//                Log.d("DEBUG_", "Apply Filters button clicked - Loading filtered booking data");
-//                Log.d("DEBUG_", "Selected filters - DepartmentID: "+ "school id"+schoolId + selectedDepartmentId +
-//                           ", DateID: " + selectedDateId +
-//                           ", TimeID: " + selectedTimeId);
+                // Exit selection mode when apply filters is clicked (if in normal mode)
+                if (adapter != null && adapter.isSelectionMode()) {
+                    // If in selection mode, this button acts as cancel - don't exit here
+                    // The cancel functionality will handle this
+                } else {
+                    loadBookingDataFromAPI();
+                }
+            });
+        }
 
-                // Call loadBookingDataFromAPI with current filter selections
-                loadBookingDataFromAPI();
+        if (cancelSelectedButton != null) {
+            cancelSelectedButton.setOnClickListener(v -> {
+                if (adapter != null && adapter.isSelectionMode()) {
+                    adapter.exitSelectionMode();
+                }
             });
         }
     }
 
+
     private void loadBookingDataFromAPI() {
-        if (schoolId == -1) {
+        if (schoolId == -1 && hospitalId == -1) {
             Log.w("DEBUG_", "Skipping booking load - missing required IDs. schoolId=" + schoolId + ", hospitalId=" + hospitalId);
             return;
         }
-        // || hospitalId == -1
 
-        // Show loading dialog
         SweetAlertDialog loadingDialog = new SweetAlertDialog(requireContext(), SweetAlertDialog.PROGRESS_TYPE);
         loadingDialog.setTitleText("Loading bookings...");
         loadingDialog.setCancelable(false);
@@ -399,26 +441,6 @@ public class ViewBookingList extends Fragment {
         });
     }
 
-
-    private int getHospitalIdFromBookings() {
-        // Use the hospitalId passed from the activity first
-        if (hospitalId != -1) {
-            Log.d(TAG, "Using hospitalId from arguments: " + hospitalId);
-            return hospitalId;
-        }
-
-        // Fallback: If you pass hospital ID from previous activity
-        int intentHospitalId = getActivity() != null ? getActivity().getIntent().getIntExtra("hospital_id", -1) : -1;
-        if (intentHospitalId != -1) {
-            Log.d(TAG, "Using hospitalId from intent: " + intentHospitalId);
-            return intentHospitalId;
-        }
-
-        // Last resort: Use default hospital ID
-        Log.w(TAG, "No hospital ID found, using default value 1");
-        return 1;
-    }
-
     private List<TimeSlotModel> timeSlots = new ArrayList<>();
     private void loadTimes( int slotDateId) {
         ApiInterface api = ApiClient.getClient().create(ApiInterface.class);
@@ -554,6 +576,38 @@ public class ViewBookingList extends Fragment {
         filteredList = new ArrayList<>();
 
         adapter = new ViewBookingAdapter(filteredList, requireContext(), schoolId);
+
+        // Set up selection mode listener
+        adapter.setOnSelectionModeListener(new ViewBookingAdapter.OnSelectionModeListener() {
+            @Override
+            public void onSelectionModeEntered() {
+                // Show cancel button and hide apply filters button
+                if (applyFiltersButton != null) {
+                    applyFiltersButton.setVisibility(View.GONE);
+                }
+                showCancelButton();
+            }
+
+            @Override
+            public void onSelectionModeExited() {
+                // Hide cancel button and show apply filters button
+                hideCancelButton();
+                if (applyFiltersButton != null) {
+                    applyFiltersButton.setVisibility(View.VISIBLE);
+                }
+            }
+
+            @Override
+            public void onSelectionChanged(int selectedCount) {
+                updateSelectionCount(selectedCount);
+            }
+
+            @Override
+            public void onCancelSelected(List<ViewBookingModel> selectedBookings) {
+                confirmCancelAppointments(selectedBookings);
+            }
+        });
+
         rvBookings.setLayoutManager(new LinearLayoutManager(requireContext()));
         rvBookings.setAdapter(adapter);
     }
@@ -649,5 +703,127 @@ public class ViewBookingList extends Fragment {
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             timeSpinner.setAdapter(adapter);
         }
+    }
+
+    // Selection mode UI management methods
+    @SuppressLint("SetTextI18n")
+    private void showCancelButton() {
+        if (getActivity() != null) {
+            // Create cancel button dynamically or show existing one
+            if (cancelSelectedButton == null) {
+                // If cancel button doesn't exist, transform apply button temporarily
+                if (applyFiltersButton != null) {
+                    applyFiltersButton.setText("Cancel Selected (" + adapter.getSelectedCount() + ")");
+                    applyFiltersButton.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(android.R.color.holo_red_dark)));
+                    applyFiltersButton.setOnClickListener(v -> {
+                        List<ViewBookingModel> selectedBookings = adapter.getSelectedBookings();
+                        confirmCancelAppointments(selectedBookings);
+                    });
+                    applyFiltersButton.setVisibility(View.VISIBLE);
+                }
+            } else {
+                cancelSelectedButton.setVisibility(View.VISIBLE);
+            }
+        }
+    }
+
+    @SuppressLint("SetTextI18n")
+    private void hideCancelButton() {
+        if (getActivity() != null) {
+            if (cancelSelectedButton != null) {
+                cancelSelectedButton.setVisibility(View.GONE);
+            } else {
+                // Restore apply button to original state
+                if (applyFiltersButton != null) {
+                    applyFiltersButton.setText("Apply Filters");
+                    applyFiltersButton.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.Blue)));
+                    applyFiltersButton.setOnClickListener(v -> loadBookingDataFromAPI());
+                }
+            }
+        }
+    }
+
+    private void updateSelectionCount(int selectedCount) {
+        if (applyFiltersButton != null && adapter.isSelectionMode()) {
+            applyFiltersButton.setText("Cancel Selected (" + selectedCount + ")");
+        }
+    }
+
+    private void confirmCancelAppointments(List<ViewBookingModel> selectedBookings) {
+        if (selectedBookings.isEmpty()) {
+            return;
+        }
+
+        String message = "Are you sure you want to cancel " + selectedBookings.size() +
+                        " appointment" + (selectedBookings.size() > 1 ? "s" : "") + "?";
+
+        new SweetAlertDialog(requireContext(), SweetAlertDialog.WARNING_TYPE)
+                .setTitleText("Cancel Appointments")
+                .setContentText(message)
+                .setConfirmText("Yes, Cancel")
+                .setCancelText("No")
+                .setConfirmClickListener(sweetAlertDialog -> {
+                    sweetAlertDialog.dismiss();
+                    cancelAppointments(selectedBookings);
+                })
+                .setCancelClickListener(SweetAlertDialog::dismiss)
+                .show();
+    }
+
+    private void cancelAppointments(List<ViewBookingModel> selectedBookings) {
+        // Show loading dialog
+        SweetAlertDialog loadingDialog = new SweetAlertDialog(requireContext(), SweetAlertDialog.PROGRESS_TYPE);
+        loadingDialog.setTitleText("Cancelling appointments...");
+        loadingDialog.setCancelable(false);
+        loadingDialog.show();
+
+        // Extract student IDs from selected bookings
+        List<Integer> studentIds = new ArrayList<>();
+        for (ViewBookingModel booking : selectedBookings) {
+            studentIds.add(booking.getStudentId());
+        }
+
+        ApiInterface api = ApiClient.getClient().create(ApiInterface.class);
+        Call<GenericResponse> call = api.cancelAppointment(studentIds);
+
+        call.enqueue(new Callback<>() {
+            @Override
+            public void onResponse(@NonNull Call<GenericResponse> call, @NonNull Response<GenericResponse> response) {
+                loadingDialog.dismiss();
+
+                if (response.isSuccessful() && response.body() != null) {
+                    GenericResponse result = response.body();
+                    if (result.isSuccess()) {
+                        new SweetAlertDialog(requireContext(), SweetAlertDialog.SUCCESS_TYPE)
+                                .setTitleText("Success!")
+                                .setContentText("Appointments cancelled successfully")
+                                .setConfirmClickListener(sweetAlertDialog -> {
+                                    sweetAlertDialog.dismiss();
+                                    adapter.exitSelectionMode();
+                                    loadBookingDataFromAPI();
+                                })
+                                .show();
+                    } else {
+                        showErrorDialog("Failed to cancel appointments: " + result.getMessage());
+                    }
+                } else {
+                    showErrorDialog("Failed to cancel appointments. Please try again.");
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<GenericResponse> call, @NonNull Throwable t) {
+                loadingDialog.dismiss();
+                showErrorDialog("Network error: " + t.getMessage());
+            }
+        });
+    }
+
+    private void showErrorDialog(String message) {
+        new SweetAlertDialog(requireContext(), SweetAlertDialog.ERROR_TYPE)
+                .setTitleText("Error")
+                .setContentText(message)
+                .setConfirmText("OK")
+                .show();
     }
 }

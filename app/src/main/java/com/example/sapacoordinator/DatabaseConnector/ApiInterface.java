@@ -118,4 +118,11 @@ public interface ApiInterface {
             @Query("school_id") int schoolId
     );
 
+    // Cancel appointment endpoint
+    @FormUrlEncoded
+    @POST("cancel_appointment.php")
+    Call<GenericResponse> cancelAppointment(
+            @Field("student_ids[]") List<Integer> studentIds
+    );
+
 }
