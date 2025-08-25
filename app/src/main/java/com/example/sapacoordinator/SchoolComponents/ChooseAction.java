@@ -1,5 +1,6 @@
 package com.example.sapacoordinator.SchoolComponents;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -27,6 +28,7 @@ import com.example.sapacoordinator.SchoolComponents.StudentsComponents.StudentAc
 import com.example.sapacoordinator.SchoolComponents.StudentsComponents.StudentsRegistration;
 import com.example.sapacoordinator.ViewBookingComponents.ChooseActionBooking;
 import com.example.sapacoordinator.ViewBookingComponents.ViewBooking.ViewBookingActivity;
+import com.example.sapacoordinator.ViewBookingComponents.ViewBooking.ViewBookingList;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -38,8 +40,9 @@ public class ChooseAction extends AppCompatActivity {
     private String schoolName, schoolAddress, schoolContact;
     private int schoolId;
     private int userId;
-    private TextView tvStudentsCount;
+    private TextView tvStudentsCount, tvAppointmentsCount;
 
+    @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,8 +75,8 @@ public class ChooseAction extends AppCompatActivity {
         TextView tvAddress = findViewById(R.id.tvAddress);
         TextView tvContact = findViewById(R.id.tvContact);
         tvStudentsCount = findViewById(R.id.tvStudentsCount);
+        tvAppointmentsCount = findViewById(R.id.tvappointmentsCount);
 
-        // Display school data
         if (schoolName != null) tvSchoolName.setText(schoolName);
         if (schoolAddress != null) tvAddress.setText(schoolAddress);
         if (schoolContact != null) tvContact.setText(schoolContact);
@@ -109,14 +112,17 @@ public class ChooseAction extends AppCompatActivity {
         });
 
 
-        LinearLayout tvAppointmentsCount = findViewById(R.id.appointmentsCountContainer);
-        tvAppointmentsCount.setOnClickListener(v -> {
+        LinearLayout appointmentsCount = findViewById(R.id.appointmentsCountContainer);
+        appointmentsCount.setOnClickListener(v -> {
             Intent intent = new Intent(ChooseAction.this, ChooseActionBooking.class);
             intent.putExtra("school_id", schoolId);
             startActivity(intent);
-            fetchStudentCount();
+
 
         });
+        fetchBookingCount();
+        fetchStudentCount();
+
     }
 
             private void fetchStudentCount() {
@@ -141,4 +147,28 @@ public class ChooseAction extends AppCompatActivity {
                 });
             }
 
-        }
+    private void fetchBookingCount() {
+        ApiInterface apiInterface = ApiClient.getClient().create(ApiInterface.class);
+        Call<GenericResponse> call = apiInterface.getBookingCount(schoolId);
+
+        call.enqueue(new Callback<>() {
+            @Override
+            public void onResponse(@NonNull Call<GenericResponse> call, @NonNull Response<GenericResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    Log.d("COUNT_DEBUG", "Booking count response: " + response.body().getBooking_count());
+                    tvAppointmentsCount.setText(String.valueOf(response.body().getBooking_count()));
+                } else {
+                    tvAppointmentsCount.setText("0");
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<GenericResponse> call, @NonNull Throwable t) {
+                tvAppointmentsCount.setText("0");
+                Toast.makeText(ChooseAction.this, "Failed to load booking count", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+
+}

@@ -44,12 +44,12 @@ public class DateAdapter extends RecyclerView.Adapter<DateAdapter.ViewHolder> {
             Log.d("DEBUG", "Binding date at position " + position + ": " + dateSlot.getSlotDate());
 
             holder.tvDate.setText(dateSlot.getSlotDate());
-        } else {
+        } else if(dateSlot==null) {
             holder.tvDate.setText("No Date"); // fallback
         }
         holder.itemView.setBackgroundColor(
-                position == selectedPosition ? Color.LTGRAY : Color.TRANSPARENT
-        );
+                position == selectedPosition ? Color.parseColor("#FFDD55") : Color.TRANSPARENT
+        );//#FFDD55
 
         holder.itemView.setOnClickListener(v -> {
             Log.d("DEBUG", "Clicked on date ID: " + dateSlot.getSlotDateId() + " at position " + position);

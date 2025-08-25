@@ -294,13 +294,10 @@ public class ViewBookingList extends Fragment {
             }
         });
     }
-
-
     private void handleBookingResponse(Response<List<ViewBookingModel>> response) {
         if (response.isSuccessful() && response.body() != null) {
             bookingList = response.body();
             Log.d(TAG, "✅ Bookings fetched: " + bookingList.size());
-
             for (ViewBookingModel b : bookingList) {
                 Log.d(TAG, "Booking -> Dept: " + b.getDepartment() +
                         ", Date: " + b.getSlotDate() +
@@ -607,7 +604,7 @@ public class ViewBookingList extends Fragment {
 
     private void updateResultsCount() {
         if (resultsCountTextView != null && bookingList != null) {
-            String countText = filteredList.size() + " of " + bookingList.size() + " bookings";
+            String countText =bookingList.size() + " Bookings";
             resultsCountTextView.setText(countText);
         }
     }

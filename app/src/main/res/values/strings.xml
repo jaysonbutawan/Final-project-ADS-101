@@ -39,4 +39,5 @@
     <string name="laoding">Laoding...</string>
     <string name="contact_info">Contact Info</string>
     <string name="select_a_hospital_to_manage_bookings_and_bills">Select a hospital to manage bookings and bills</string>
+    <string name="view_amp_filter_bookings"><![CDATA[View & Filter Bookings]]></string>
 </resources>

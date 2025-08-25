@@ -7,6 +7,15 @@ public class GenericResponse {
     private String message;
     @SerializedName("student_count")
     private int studentCount;
+    @SerializedName("booking_count")
+    private int booking_count;
+
+    public int getBooking_count() {
+        return booking_count;
+    }
+    public void setBooking_count(int booking_count) {
+        this.booking_count = booking_count;
+    }
     private int user_id;
 
     public boolean isSuccess() {

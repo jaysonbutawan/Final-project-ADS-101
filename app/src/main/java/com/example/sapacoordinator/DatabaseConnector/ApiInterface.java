@@ -113,5 +113,9 @@ public interface ApiInterface {
             @Query("slot_date_id") int dateSlotId,
             @Query("time_slot_id") int timeSlotId
     );
+    @GET("get_booking_counts.php")
+    Call<GenericResponse> getBookingCount(
+            @Query("school_id") int schoolId
+    );
 
 }
