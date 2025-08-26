@@ -92,6 +92,14 @@ public interface ApiInterface {
             @Field("school_id") int schoolId
     );
 
+    // Delete student endpoint
+    @FormUrlEncoded
+    @POST("delete_student.php")
+    Call<GenericResponse> deleteStudent(
+            @Field("student_id") int studentId,
+            @Field("school_id") int schoolId
+    );
+
     @GET("get_hospitals.php")
     Call<List<Hospital>> getHospitals();
 

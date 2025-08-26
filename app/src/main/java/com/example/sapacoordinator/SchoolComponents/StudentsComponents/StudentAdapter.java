@@ -66,7 +66,6 @@ public class StudentAdapter extends RecyclerView.Adapter<StudentAdapter.StudentV
         holder.tvPhone.setText(student.getPhoneNumber() != null ? student.getPhoneNumber() : "N/A");
         holder.tvEmail.setText(student.getEmail() != null ? student.getEmail() : "N/A");
 
-        // Set click listeners for buttons
         holder.btnEdit.setOnClickListener(v -> {
             Intent intent = new Intent(context, StudentsRegistration.class);
             intent.putExtra("school_id", student.getSchoolId());

@@ -243,7 +243,6 @@
                     android:id="@+id/etEmailAddress"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center"
                     android:hint="@string/juandelacruz_example_com"
                     android:inputType="textEmailAddress"/>
             </com.google.android.material.textfield.TextInputLayout>
