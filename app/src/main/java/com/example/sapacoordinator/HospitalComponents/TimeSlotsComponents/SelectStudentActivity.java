@@ -247,6 +247,7 @@ public class SelectStudentActivity extends AppCompatActivity implements BookingS
             }
         }
 
+        // Update continue button state
         if (btnContinueBooking != null) {
             btnContinueBooking.setEnabled(selectedCount > 0);
         }
@@ -259,10 +260,12 @@ public class SelectStudentActivity extends AppCompatActivity implements BookingS
         Log.d("DEBUG_", "Selected students: " + selectedStudentIds.size());
         Log.d("DEBUG_", "Student IDs: " + selectedStudentIds.toString());
 
+        // Show loading state
         btnContinueBooking.setEnabled(false);
         btnContinueBooking.setText("Submitting Booking...");
 
 
+        // Submit booking to API - send all students at once
         submitBookingForAllStudents(new ArrayList<>(selectedStudentIds), hospitalId);
     }
 
@@ -283,12 +286,14 @@ public class SelectStudentActivity extends AppCompatActivity implements BookingS
                 if (response.isSuccessful() && response.body() != null) {
                     GenericResponse genericResponse = response.body();
 
+                    // Add debug logging to see the actual response
                     Log.d("DEBUG_", "Response received:");
                     Log.d("DEBUG_", "Raw response: " + new Gson().toJson(genericResponse));
                     Log.d("DEBUG_", "Status: " + response.code());
                     Log.d("DEBUG_", "Message: " + genericResponse.getMessage());
                     Log.d("DEBUG_", "isSuccess(): " + genericResponse.isSuccess());
 
+                    // Check for success using multiple conditions
                     boolean isSuccessful = genericResponse.isSuccess() ||
                                          (genericResponse.getMessage() != null &&
                                           genericResponse.getMessage().toLowerCase().contains("success")) ||
@@ -301,6 +306,7 @@ public class SelectStudentActivity extends AppCompatActivity implements BookingS
                         refreshBookingCount();
                         showBookingSuccessDialog();
                     } else {
+                        // Booking failed
                         Log.d("DEBUG_", "Booking failed - Status check failed");
                         Log.d("DEBUG_", "Message received: " + genericResponse.getMessage());
                         handleBookingError("Booking failed: " + genericResponse.getMessage());
@@ -324,6 +330,7 @@ public class SelectStudentActivity extends AppCompatActivity implements BookingS
 
         Log.e("DEBUG_", errorMessage);
 
+        // Use SweetAlertDialog for error message
         new SweetAlertDialog(SelectStudentActivity.this, SweetAlertDialog.ERROR_TYPE)
                 .setTitleText("Booking Failed!")
                 .setContentText("Unable to complete your booking request.\n\n" +
@@ -332,7 +339,9 @@ public class SelectStudentActivity extends AppCompatActivity implements BookingS
                 .show();
     }
 
+    // Show success dialog with booking details
     private void showBookingSuccessDialog() {
+        // Reset button state
         btnContinueBooking.setText("Continue to Final Booking");
         btnContinueBooking.setEnabled(true);
 

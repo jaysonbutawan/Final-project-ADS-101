@@ -3,6 +3,7 @@ package com.example.sapacoordinator.SchoolComponents.StudentsComponents;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,6 +35,10 @@ public class StudentAdapter extends RecyclerView.Adapter<StudentAdapter.StudentV
         notifyDataSetChanged();
     }
 
+    public void setOnStudentActionListener(OnStudentActionListener listener) {
+        this.listener = listener;
+    }
+
     @NonNull
     @Override
     public StudentViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -61,6 +66,27 @@ public class StudentAdapter extends RecyclerView.Adapter<StudentAdapter.StudentV
         holder.tvPhone.setText(student.getPhoneNumber() != null ? student.getPhoneNumber() : "N/A");
         holder.tvEmail.setText(student.getEmail() != null ? student.getEmail() : "N/A");
 
+        // Set click listeners for buttons
+        holder.btnEdit.setOnClickListener(v -> {
+            Intent intent = new Intent(context, StudentsRegistration.class);
+            intent.putExtra("school_id", student.getSchoolId());
+            intent.putExtra("edit_mode", true);
+            intent.putExtra("student_id", student.getStudentId());
+            intent.putExtra("student_code", student.getStudentCode());
+            intent.putExtra("firstname", student.getFirstname());
+            intent.putExtra("lastname", student.getLastname());
+            intent.putExtra("phone_number", student.getPhoneNumber());
+            intent.putExtra("email", student.getEmail());
+            intent.putExtra("sex", student.getSex());
+            intent.putExtra("age", student.getAge());
+            context.startActivity(intent);
+        });
+
+        holder.btnDelete.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onDelete(student);
+            }
+        });
     }
 
     @Override

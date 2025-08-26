@@ -77,6 +77,21 @@ public interface ApiInterface {
     @GET("get_students.php")
     Call<List<Student>> getStudents(@Query("user_id") int userId, @Query("school_id") int schoolId);
 
+    // Update student endpoint
+    @FormUrlEncoded
+    @POST("update_student.php")
+    Call<GenericResponse> updateStudent(
+            @Field("student_id") int studentId,
+            @Field("user_id") int userId,
+            @Field("firstname") String firstName,
+            @Field("lastname") String lastName,
+            @Field("phone_number") String phoneNumber,
+            @Field("email") String email,
+            @Field("sex") String sex,
+            @Field("date_of_birth") String dateOfBirth,
+            @Field("school_id") int schoolId
+    );
+
     @GET("get_hospitals.php")
     Call<List<Hospital>> getHospitals();
 

@@ -102,6 +102,16 @@ public class ChooseAction extends AppCompatActivity {
             startActivity(intent);
         });
 
+        Button firstbookAppointment = findViewById(R.id.btnContinueBooking);
+        firstbookAppointment.setOnClickListener(v -> {
+            Intent intent = new Intent(ChooseAction.this, HospitalActivity.class);
+            intent.putExtra("school_id", schoolId);
+            intent.putExtra("user_id", userId);
+            Log.d("DEBUG_", "Navigating to StudentsRegistration with school_id: " + schoolId);
+            startActivity(intent);
+        });
+
+
 
         LinearLayout llStudentsCount = findViewById(R.id.studentsCountContainer);
         llStudentsCount.setOnClickListener(v -> {

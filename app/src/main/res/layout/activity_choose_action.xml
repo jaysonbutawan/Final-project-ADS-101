@@ -201,6 +201,7 @@
                     android:layout_marginBottom="16dp"/>
 
                 <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnContinueBooking"
                     android:layout_width="match_parent"
                     android:layout_height="65dp"
                     android:text="Book First Appointment"

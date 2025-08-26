@@ -30,6 +30,10 @@ public class StudentsRegistration extends AppCompatActivity {
     EditText etFirstName, etLastName, etPhoneNumber, etEmailAddress, etDateOfBirth;
     ChipGroup genderChipGroup;
 
+    // Edit mode variables
+    private boolean isEditMode = false;
+    private int studentId = -1;
+    private String studentCode = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +55,9 @@ public class StudentsRegistration extends AppCompatActivity {
         etDateOfBirth = findViewById(R.id.etDateOfBirth);
         btnAddStudent = findViewById(R.id.btnAddStudent);
         genderChipGroup = findViewById(R.id.genderChipGroup);
+
+        // Check if we're in edit mode
+        checkEditMode();
 
         // DateSlot picker
         etDateOfBirth.setOnClickListener(v -> {
@@ -76,7 +83,6 @@ public class StudentsRegistration extends AppCompatActivity {
             String sex = "";
             SharedPreferences prefs = getSharedPreferences("UserSession", MODE_PRIVATE);
             int userId = prefs.getInt("user_id", -1);
-
 
             if (userId == -1) {
                 showAddStudentError("User not logged in.");
@@ -104,11 +110,52 @@ public class StudentsRegistration extends AppCompatActivity {
                 return;
             }
 
-            addStudent(userId,firstName, lastName, phoneNumber, email, sex, dateOfBirth, schoolId);
+            if (isEditMode) {
+                updateStudent(userId, firstName, lastName, phoneNumber, email, sex, dateOfBirth, schoolId);
+            } else {
+                addStudent(userId, firstName, lastName, phoneNumber, email, sex, dateOfBirth, schoolId);
+            }
         });
+    }
 
+    private void checkEditMode() {
+        isEditMode = getIntent().getBooleanExtra("edit_mode", false);
 
+        if (isEditMode) {
+            // Change button text and populate fields
+            btnAddStudent.setText("Update Student");
 
+            // Get student data from intent
+            studentId = getIntent().getIntExtra("student_id", -1);
+            studentCode = getIntent().getStringExtra("student_code");
+            String firstname = getIntent().getStringExtra("firstname");
+            String lastname = getIntent().getStringExtra("lastname");
+            String phoneNumber = getIntent().getStringExtra("phone_number");
+            String email = getIntent().getStringExtra("email");
+            String sex = getIntent().getStringExtra("sex");
+            int age = getIntent().getIntExtra("age", 0);
+
+            // Populate fields
+            if (firstname != null) etFirstName.setText(firstname);
+            if (lastname != null) etLastName.setText(lastname);
+            if (phoneNumber != null) etPhoneNumber.setText(phoneNumber);
+            if (email != null) etEmailAddress.setText(email);
+
+            // Set gender
+            if ("Male".equals(sex)) {
+                genderChipGroup.check(R.id.chipMale);
+            } else if ("Female".equals(sex)) {
+                genderChipGroup.check(R.id.chipFemale);
+            }
+
+            // Calculate and set birth date based on age (approximate)
+            if (age > 0) {
+                Calendar cal = Calendar.getInstance();
+                cal.add(Calendar.YEAR, -age);
+                String birthDate = cal.get(Calendar.YEAR) + "-01-01"; // Approximate date
+                etDateOfBirth.setText(birthDate);
+            }
+        }
     }
 
     private void addStudent(int userId,String firstName, String lastName, String phoneNumber, String email, String sex, String dateOfBirth, int schoolId) {
@@ -161,5 +208,45 @@ public class StudentsRegistration extends AppCompatActivity {
                 .setTitleText("Error")
                 .setContentText(message)
                 .show();
+    }
+
+    private void updateStudent(int userId, String firstName, String lastName, String phoneNumber, String email, String sex, String dateOfBirth, int schoolId) {
+        ApiInterface api = ApiClient.getClient().create(ApiInterface.class);
+
+        Call<GenericResponse> call = api.updateStudent(studentId, userId, firstName, lastName, phoneNumber, email, sex, dateOfBirth, schoolId);
+
+        call.enqueue(new Callback<>() {
+            @Override
+            public void onResponse(@NonNull Call<GenericResponse> call, @NonNull Response<GenericResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    handleUpdateStudentResponse(response.body());
+                } else {
+                    showAddStudentError("Server error: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<GenericResponse> call, @NonNull Throwable t) {
+                showAddStudentError("Connection Error: " + t.getMessage());
+            }
+        });
+    }
+
+    private void handleUpdateStudentResponse(GenericResponse res) {
+        if (res.isSuccess()) {
+            new SweetAlertDialog(this, SweetAlertDialog.SUCCESS_TYPE)
+                    .setTitleText("Success")
+                    .setContentText("Student updated successfully!")
+                    .setConfirmClickListener(sDialog -> {
+                        sDialog.dismissWithAnimation();
+                        finish(); // Go back to student list
+                    })
+                    .show();
+        } else {
+            new SweetAlertDialog(this, SweetAlertDialog.ERROR_TYPE)
+                    .setTitleText("Failed")
+                    .setContentText(res.getMessage())
+                    .show();
+        }
     }
 }
