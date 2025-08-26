@@ -40,6 +40,7 @@ public class SelectStudentActivity extends AppCompatActivity implements BookingS
     private int departmentId;
     private int dateSlotId;
     private int timeSlotId;
+    private  int hospitalId = -1;
     private int maxCapacity = 0;
     private int currentBookedCount = 0;
     private int availableSlots = 0;
@@ -66,6 +67,7 @@ public class SelectStudentActivity extends AppCompatActivity implements BookingS
 
         // Get booking data from intent
         schoolId = getIntent().getIntExtra("school_id", -1);
+        hospitalId = getIntent().getIntExtra("hospital_id", -1);
         departmentId = getIntent().getIntExtra("department_id", -1);
         dateSlotId = getIntent().getIntExtra("date_slot_id", -1);
         timeSlotId = getIntent().getIntExtra("time_slot_id", -1);
@@ -76,6 +78,7 @@ public class SelectStudentActivity extends AppCompatActivity implements BookingS
         // Log the received data
         Log.d("DEBUG_", "Received booking data:");
         Log.d("DEBUG_", "School ID: " + schoolId);
+        Log.d("DEBUG_", "Hospital ID: " + hospitalId);
         Log.d("DEBUG_", "Department ID: " + departmentId);
         Log.d("DEBUG_", "Date Slot ID: " + dateSlotId);
         Log.d("DEBUG_", "Time Slot ID: " + timeSlotId);
@@ -244,7 +247,6 @@ public class SelectStudentActivity extends AppCompatActivity implements BookingS
             }
         }
 
-        // Update continue button state
         if (btnContinueBooking != null) {
             btnContinueBooking.setEnabled(selectedCount > 0);
         }
@@ -257,14 +259,17 @@ public class SelectStudentActivity extends AppCompatActivity implements BookingS
         Log.d("DEBUG_", "Selected students: " + selectedStudentIds.size());
         Log.d("DEBUG_", "Student IDs: " + selectedStudentIds.toString());
 
-        // Show loading state
         btnContinueBooking.setEnabled(false);
         btnContinueBooking.setText("Submitting Booking...");
 
-        // We need to get hospital_id from department data
-        // For now, we'll use department_id as hospital_id (you may need to adjust this based on your data structure)
-        int hospitalId = departmentId; // This might need to be adjusted based on your actual data relationship
 
+        submitBookingForAllStudents(new ArrayList<>(selectedStudentIds), hospitalId);
+    }
+
+    private void submitBookingForAllStudents(List<Integer> studentIds, int hospitalId) {
+        ApiInterface api = ApiClient.getClient().create(ApiInterface.class);
+        String studentIdsJson = new Gson().toJson(studentIds);
+        Call<GenericResponse> call = api.bookAppointment(schoolId, hospitalId, departmentId,dateSlotId ,timeSlotId, studentIdsJson );
         Log.d("DEBUG_", "Submitting booking with:");
         Log.d("DEBUG_", "  school_id: " + schoolId);
         Log.d("DEBUG_", "  hospital_id: " + hospitalId);
@@ -272,33 +277,18 @@ public class SelectStudentActivity extends AppCompatActivity implements BookingS
         Log.d("DEBUG_", "  department_id: " + departmentId);
         Log.d("DEBUG_", "  date_slot_id: " + dateSlotId);
 
-        // Submit booking to API - send all students at once
-        submitBookingForAllStudents(new ArrayList<>(selectedStudentIds), hospitalId);
-    }
-
-    private void submitBookingForAllStudents(List<Integer> studentIds, int hospitalId) {
-        ApiInterface api = ApiClient.getClient().create(ApiInterface.class);
-        Call<GenericResponse> call = api.bookAppointment(
-                schoolId,
-                hospitalId,
-                timeSlotId,
-                studentIds // Send all student IDs at once
-        );
-
         call.enqueue(new Callback<>() {
             @Override
             public void onResponse(@NonNull Call<GenericResponse> call, @NonNull Response<GenericResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     GenericResponse genericResponse = response.body();
 
-                    // Add debug logging to see the actual response
                     Log.d("DEBUG_", "Response received:");
                     Log.d("DEBUG_", "Raw response: " + new Gson().toJson(genericResponse));
                     Log.d("DEBUG_", "Status: " + response.code());
                     Log.d("DEBUG_", "Message: " + genericResponse.getMessage());
                     Log.d("DEBUG_", "isSuccess(): " + genericResponse.isSuccess());
 
-                    // Check for success using multiple conditions
                     boolean isSuccessful = genericResponse.isSuccess() ||
                                          (genericResponse.getMessage() != null &&
                                           genericResponse.getMessage().toLowerCase().contains("success")) ||
@@ -311,7 +301,6 @@ public class SelectStudentActivity extends AppCompatActivity implements BookingS
                         refreshBookingCount();
                         showBookingSuccessDialog();
                     } else {
-                        // Booking failed
                         Log.d("DEBUG_", "Booking failed - Status check failed");
                         Log.d("DEBUG_", "Message received: " + genericResponse.getMessage());
                         handleBookingError("Booking failed: " + genericResponse.getMessage());
@@ -335,7 +324,6 @@ public class SelectStudentActivity extends AppCompatActivity implements BookingS
 
         Log.e("DEBUG_", errorMessage);
 
-        // Use SweetAlertDialog for error message
         new SweetAlertDialog(SelectStudentActivity.this, SweetAlertDialog.ERROR_TYPE)
                 .setTitleText("Booking Failed!")
                 .setContentText("Unable to complete your booking request.\n\n" +
@@ -344,9 +332,7 @@ public class SelectStudentActivity extends AppCompatActivity implements BookingS
                 .show();
     }
 
-    // Show success dialog with booking details
     private void showBookingSuccessDialog() {
-        // Reset button state
         btnContinueBooking.setText("Continue to Final Booking");
         btnContinueBooking.setEnabled(true);
 

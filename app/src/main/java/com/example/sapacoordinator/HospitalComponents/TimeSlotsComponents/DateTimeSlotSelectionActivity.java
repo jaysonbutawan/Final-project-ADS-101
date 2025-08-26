@@ -24,6 +24,7 @@ public class DateTimeSlotSelectionActivity extends AppCompatActivity
     private int selectedTimeSlotCapacity = 0;
     private  int selectedBookedCount = 0;
     private Button btnBookAppointment;
+    private int hospitalId =-1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,12 +38,14 @@ public class DateTimeSlotSelectionActivity extends AppCompatActivity
         });
 
         departmentId = getIntent().getIntExtra("department_id", -1);
-        schoolId = getIntent().getIntExtra("school_id", -1); // Get school_id from intent
+        schoolId = getIntent().getIntExtra("school_id", -1);
+        hospitalId =getIntent().getIntExtra("hospital_id",-1);
 
         // ✅ Log the received values immediately
         Log.d("DEBUG_", "DateTimeSlotSelection onCreate:");
         Log.d("DEBUG_", "  Received departmentId: " + departmentId);
         Log.d("DEBUG_", "  Received schoolId: " + schoolId);
+        Log.d("DEBUG_", "  Received hospitalId----------------------------------: " + hospitalId);
 
         // Initialize button
         btnBookAppointment = findViewById(R.id.btnBookAppointment);
@@ -158,6 +161,7 @@ public class DateTimeSlotSelectionActivity extends AppCompatActivity
     private void proceedToStudentSelection() {
         Intent intent = new Intent(this, SelectStudentActivity.class);
         intent.putExtra("school_id", schoolId);
+        intent.putExtra("hospital_id", hospitalId);
         intent.putExtra("department_id", departmentId);
         intent.putExtra("date_slot_id", selectedDateSlotId);  // Fixed: correct key name
         intent.putExtra("time_slot_id", selectedTimeSlotId);

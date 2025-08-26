@@ -1,5 +1,6 @@
 package com.example.sapacoordinator.DatabaseConnector;
 
+import com.example.sapacoordinator.ViewBookingComponents.ViewBooking.CancelRequest;
 import com.example.sapacoordinator.ViewBookingComponents.ViewBooking.ViewBookingModel;
 import com.example.sapacoordinator.HospitalComponents.DepartmentComponents.Department;
 import com.example.sapacoordinator.HospitalComponents.Hospital;
@@ -11,6 +12,7 @@ import com.example.sapacoordinator.SchoolComponents.StudentsComponents.Student;
 import java.util.List;
 
 import retrofit2.Call;
+import retrofit2.http.Body;
 import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
@@ -96,8 +98,10 @@ public interface ApiInterface {
     Call<GenericResponse> bookAppointment(
             @Field("school_id") int schoolId,
             @Field("hospital_id") int hospitalId,
+            @Field("department_id") int departmentId,
+            @Field("slot_date_id") int dateSlotId,
             @Field("time_slot_id") int timeSlotId,
-            @Field("student_ids[]") List<Integer> studentIds
+            @Field("student_ids") String studentIdsJson
     );
     @GET("get_available_students.php")
     Call<List<Student>> getAvailableStudents(
@@ -109,6 +113,7 @@ public interface ApiInterface {
     @GET("get_appointments.php")
     Call<List<ViewBookingModel>> getFilteredBookedStudents(
             @Query("school_id") int schoolId,
+            @Query("hospital_id") int hospitalId,
             @Query("department_id") int departmentId,
             @Query("slot_date_id") int dateSlotId,
             @Query("time_slot_id") int timeSlotId
@@ -119,10 +124,8 @@ public interface ApiInterface {
     );
 
     // Cancel appointment endpoint
-    @FormUrlEncoded
     @POST("cancel_appointment.php")
-    Call<GenericResponse> cancelAppointment(
-            @Field("student_ids[]") List<Integer> studentIds
-    );
+    Call<GenericResponse> cancelAppointment(@Body CancelRequest request);
+
 
 }

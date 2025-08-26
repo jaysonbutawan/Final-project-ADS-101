@@ -2,6 +2,7 @@ package com.example.sapacoordinator.ViewBookingComponents.ViewBooking;
 import android.annotation.SuppressLint;
 import android.content.res.ColorStateList;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -57,21 +58,9 @@ public class ViewBookingList extends Fragment {
 
     private static final String TAG = "ViewBookingList";
 
-    // For cascading filter data
     private List<String> allDepartments;
     private List<String> allDates;
     private List<String> allTimes;
-
-    public boolean isSelectionModeActive() {
-        return adapter != null && adapter.isSelectionMode();
-    }
-
-    public void exitSelectionMode() {
-        if (adapter != null) {
-            adapter.exitSelectionMode();
-        }
-    }
-
 
     public static ViewBookingList newInstance(int schoolId, int hospitalId, int departmentId) {
         ViewBookingList fragment = new ViewBookingList();
@@ -107,10 +96,8 @@ public class ViewBookingList extends Fragment {
         setupRecyclerView();
         setupSpinners();
         setupFilterListeners();
-//        loadBookingDataFromAPI();
         loadDepartments();
-        // Add this in onViewCreated of ViewBookingList.java
-        // Use the view parameter directly as the root view
+
         view.setOnClickListener(v -> {
             if (adapter != null && adapter.isSelectionMode()) {
                 adapter.exitSelectionMode();
@@ -122,7 +109,6 @@ public class ViewBookingList extends Fragment {
         rvBookings = view.findViewById(R.id.rvBookings);
         tvEmptyMessage = view.findViewById(R.id.tvEmptyMessage);
 
-        // Get views from parent activity
         if (getActivity() != null) {
             resultsCountTextView = getActivity().findViewById(R.id.resultsCountTextView);
             departmentSpinner = getActivity().findViewById(R.id.departmentSpinner);
@@ -134,12 +120,10 @@ public class ViewBookingList extends Fragment {
 
     private void setupSpinners() {
         if (departmentSpinner != null && timeSpinner != null && dateSpinner != null) {
-            // Initialize with default values
             allDepartments = new ArrayList<>();
             allDates = new ArrayList<>();
             allTimes = new ArrayList<>();
 
-            // Setup department spinner
             List<String> departments = new ArrayList<>();
             departments.add("All Departments");
             ArrayAdapter<String> departmentAdapter = new ArrayAdapter<>(
@@ -147,7 +131,6 @@ public class ViewBookingList extends Fragment {
             departmentAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             departmentSpinner.setAdapter(departmentAdapter);
 
-            // Setup date spinner
             List<String> dates = new ArrayList<>();
             dates.add("All Dates");
             ArrayAdapter<String> dateAdapter = new ArrayAdapter<>(
@@ -155,7 +138,6 @@ public class ViewBookingList extends Fragment {
             dateAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             dateSpinner.setAdapter(dateAdapter);
 
-            // Setup time spinner
             List<String> times = new ArrayList<>();
             times.add("All Times");
             ArrayAdapter<String> timeAdapter = new ArrayAdapter<>(
@@ -223,7 +205,7 @@ public class ViewBookingList extends Fragment {
 
                     Log.d(TAG, "Selected DateSlotID: " + selectedDateId);
                     loadTimes(selectedDateId);
-
+                    applyFilters();
                     selectedTimeId = -1;
                 }
 
@@ -253,6 +235,7 @@ public class ViewBookingList extends Fragment {
                     // ✅ Get the selected time slot object
                     TimeSlotModel selectedSlot = timeSlots.get(position - 1); // offset for "All Times"
                     selectedTimeId = selectedSlot.getTime_slot_id();
+                    applyFilters();
 
                     Log.d(TAG, "Selected TimeSlotID: " + selectedTimeId);
                 }
@@ -307,7 +290,7 @@ public class ViewBookingList extends Fragment {
                 ", DateID: " + dateId +
                 ", TimeID: " + timeId);
 
-        Call<List<ViewBookingModel>> call = api.getFilteredBookedStudents(schoolId, deptId, dateId, timeId);
+        Call<List<ViewBookingModel>> call = api.getFilteredBookedStudents(schoolId,hospitalId, deptId, dateId, timeId);
 
         // Execute
         call.enqueue(new Callback<>() {
@@ -782,9 +765,22 @@ public class ViewBookingList extends Fragment {
         for (ViewBookingModel booking : selectedBookings) {
             studentIds.add(booking.getStudentId());
         }
+        String studentIdsCsv = TextUtils.join(",", studentIds);
+        int deptToSend = (selectedDepartmentId > 0) ? selectedDepartmentId : (Math.max(departmentId, 0));
+
 
         ApiInterface api = ApiClient.getClient().create(ApiInterface.class);
-        Call<GenericResponse> call = api.cancelAppointment(studentIds);
+        CancelRequest request = new CancelRequest(
+                schoolId, hospitalId, deptToSend, selectedDateId, selectedTimeId, studentIdsCsv
+        );
+
+        Call<GenericResponse> call = api.cancelAppointment(request);
+        Log.d("DEBUG_", "Cancel Params -> schoolId=" + schoolId
+                + " hospitalId=" + hospitalId
+                + " deptId=" + deptToSend
+                + " dateId=" + selectedDateId
+                + " timeId=" + selectedTimeId
+                + " studentIds=" + studentIds);
 
         call.enqueue(new Callback<>() {
             @Override
