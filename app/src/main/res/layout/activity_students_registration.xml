@@ -139,7 +139,7 @@
                     android:id="@+id/etDateOfBirth"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="dd/mm/yyyy"/>
+                    android:hint="YYYY/MM/MM"/>
             </com.google.android.material.textfield.TextInputLayout>
         </LinearLayout>
         <!-- Gender Selection with Chips -->
