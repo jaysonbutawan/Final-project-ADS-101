@@ -26,6 +26,10 @@ public class AddSchoolFragment extends Fragment {
     private EditText etSchoolName, etAddress, etContactInfo;
     private Button btnRegister;
 
+    // Edit mode variables
+    private boolean isEditMode = false;
+    private int schoolId = -1;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -35,6 +39,9 @@ public class AddSchoolFragment extends Fragment {
         etAddress = view.findViewById(R.id.etAddress);
         etContactInfo = view.findViewById(R.id.etContactInfo);
         btnRegister = view.findViewById(R.id.btnRegister);
+
+        // Check if we're in edit mode
+        checkEditMode();
 
         btnRegister.setOnClickListener(v -> {
             String schoolName = etSchoolName.getText().toString().trim();
@@ -54,11 +61,60 @@ public class AddSchoolFragment extends Fragment {
                         .setContentText("Please fill all required fields.")
                         .show();
             } else {
-                addSchool(schoolName, address, contactInfo, userId);
+                if (isEditMode) {
+                    updateSchool(schoolName, address, contactInfo, userId);
+                } else {
+                    addSchool(schoolName, address, contactInfo, userId);
+                }
             }
         });
 
         return view;
+    }
+
+    private void checkEditMode() {
+        // First check fragment arguments (for EditSchoolActivity)
+        if (getArguments() != null) {
+            isEditMode = getArguments().getBoolean("edit_mode", false);
+
+            if (isEditMode) {
+                // Change button text and populate fields
+                btnRegister.setText("Update School");
+
+                // Get school data from fragment arguments
+                schoolId = getArguments().getInt("school_id", -1);
+                String schoolName = getArguments().getString("school_name");
+                String schoolAddress = getArguments().getString("school_address");
+                String schoolContact = getArguments().getString("school_contact");
+
+                // Populate fields
+                if (schoolName != null) etSchoolName.setText(schoolName);
+                if (schoolAddress != null) etAddress.setText(schoolAddress);
+                if (schoolContact != null) etContactInfo.setText(schoolContact);
+                return;
+            }
+        }
+
+        // Fallback to activity intent check (for direct activity launch)
+        if (getActivity() != null && getActivity().getIntent() != null) {
+            isEditMode = getActivity().getIntent().getBooleanExtra("edit_mode", false);
+
+            if (isEditMode) {
+                // Change button text and populate fields
+                btnRegister.setText("Update School");
+
+                // Get school data from intent
+                schoolId = getActivity().getIntent().getIntExtra("school_id", -1);
+                String schoolName = getActivity().getIntent().getStringExtra("school_name");
+                String schoolAddress = getActivity().getIntent().getStringExtra("school_address");
+                String schoolContact = getActivity().getIntent().getStringExtra("school_contact");
+
+                // Populate fields
+                if (schoolName != null) etSchoolName.setText(schoolName);
+                if (schoolAddress != null) etAddress.setText(schoolAddress);
+                if (schoolContact != null) etContactInfo.setText(schoolContact);
+            }
+        }
     }
 
     private void addSchool(String schoolName, String address, String contactInfo, int userId) {
@@ -83,6 +139,27 @@ public class AddSchoolFragment extends Fragment {
         });
     }
 
+    private void updateSchool(String schoolName, String address, String contactInfo, int userId) {
+        ApiInterface api = ApiClient.getClient().create(ApiInterface.class);
+
+        Call<GenericResponse> call = api.updateSchool(schoolId, userId, schoolName, address, contactInfo);
+
+        call.enqueue(new Callback<>() {
+            @Override
+            public void onResponse(@NonNull Call<GenericResponse> call, @NonNull Response<GenericResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    handleUpdateSchoolResponse(response.body());
+                } else {
+                    showAddSchoolError("Server error: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<GenericResponse> call, @NonNull Throwable t) {
+                showAddSchoolError("Connection Error: " + t.getMessage());
+            }
+        });
+    }
 
     private void handleAddSchoolResponse(GenericResponse res) {
         if (res.isSuccess()) {
@@ -94,6 +171,26 @@ public class AddSchoolFragment extends Fragment {
                         etSchoolName.setText("");
                         etAddress.setText("");
                         etContactInfo.setText("");
+                    })
+                    .show();
+        } else {
+            new SweetAlertDialog(requireContext(), SweetAlertDialog.ERROR_TYPE)
+                    .setTitleText("Failed")
+                    .setContentText(res.getMessage())
+                    .show();
+        }
+    }
+
+    private void handleUpdateSchoolResponse(GenericResponse res) {
+        if (res.isSuccess()) {
+            new SweetAlertDialog(requireContext(), SweetAlertDialog.SUCCESS_TYPE)
+                    .setTitleText("Success")
+                    .setContentText("School updated successfully!")
+                    .setConfirmClickListener(sDialog -> {
+                        sDialog.dismissWithAnimation();
+                        if (getActivity() != null) {
+                            getActivity().finish(); // Go back to school list
+                        }
                     })
                     .show();
         } else {

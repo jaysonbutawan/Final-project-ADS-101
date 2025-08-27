@@ -24,6 +24,7 @@ public class SchoolsAdapter extends RecyclerView.Adapter<SchoolsAdapter.SchoolVi
     public interface OnSchoolClickListener {
 
         void onSchoolClick(School school);
+        void onSchoolLongClick(School school);
 
     }
 
@@ -62,6 +63,12 @@ public class SchoolsAdapter extends RecyclerView.Adapter<SchoolsAdapter.SchoolVi
                         .setConfirmText("OK")
                         .show();
             }
+        });
+
+        // Add long press listener
+        holder.itemView.setOnLongClickListener(v -> {
+            listener.onSchoolLongClick(school);
+            return true;
         });
     }
 

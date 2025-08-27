@@ -7,7 +7,6 @@ public class TimeSlotCapacityResponse {
     private int currentBookings;
     private int availableSlots;
     private boolean isFull;
-
     public TimeSlotCapacityResponse() {
     }
 

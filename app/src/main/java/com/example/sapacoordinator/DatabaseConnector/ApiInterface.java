@@ -100,6 +100,25 @@ public interface ApiInterface {
             @Field("school_id") int schoolId
     );
 
+    // Update school endpoint
+    @FormUrlEncoded
+    @POST("update_school.php")
+    Call<GenericResponse> updateSchool(
+            @Field("school_id") int schoolId,
+            @Field("user_id") int userId,
+            @Field("school_name") String schoolName,
+            @Field("school_address") String schoolAddress,
+            @Field("contact_info") String contactInfo
+    );
+
+    // Delete school endpoint
+    @FormUrlEncoded
+    @POST("delete_school.php")
+    Call<GenericResponse> deleteSchool(
+            @Field("school_id") int schoolId,
+            @Field("user_id") int userId
+    );
+
     @GET("get_hospitals.php")
     Call<List<Hospital>> getHospitals();
 

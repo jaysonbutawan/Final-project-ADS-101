@@ -19,11 +19,13 @@ import android.widget.TextView;
 
 import com.example.sapacoordinator.DatabaseConnector.ApiClient;
 import com.example.sapacoordinator.DatabaseConnector.ApiInterface;
+import com.example.sapacoordinator.DatabaseConnector.GenericResponse;
 import com.example.sapacoordinator.R;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import cn.pedant.SweetAlert.SweetAlertDialog;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -62,18 +64,26 @@ public class SchoolList extends Fragment {
 
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
 
-        adapter = new SchoolsAdapter(requireContext(), schoolList, selectedSchool -> {
-            // ✅ Add debug logging to track school_id being passed
-            Log.d("DEBUG_", "Selected school_id: " + selectedSchool.getId());
-            Log.d("DEBUG_", "Selected school_name: " + selectedSchool.getName());
+        adapter = new SchoolsAdapter(requireContext(), schoolList, new SchoolsAdapter.OnSchoolClickListener() {
+            @Override
+            public void onSchoolClick(School selectedSchool) {
+                // ✅ Add debug logging to track school_id being passed
+                Log.d("DEBUG_", "Selected school_id: " + selectedSchool.getId());
+                Log.d("DEBUG_", "Selected school_name: " + selectedSchool.getName());
 
-            Intent intent = new Intent(getContext(), ChooseAction.class);
-            intent.putExtra("school_id", selectedSchool.getId());
-            intent.putExtra("school_name", selectedSchool.getName());
-            intent.putExtra("school_address", selectedSchool.getAddress());
-            intent.putExtra("school_contact", selectedSchool.getContact());
-            intent.putExtra("school_status", selectedSchool.getStatus());
-            startActivity(intent);
+                Intent intent = new Intent(getContext(), ChooseAction.class);
+                intent.putExtra("school_id", selectedSchool.getId());
+                intent.putExtra("school_name", selectedSchool.getName());
+                intent.putExtra("school_address", selectedSchool.getAddress());
+                intent.putExtra("school_contact", selectedSchool.getContact());
+                intent.putExtra("school_status", selectedSchool.getStatus());
+                startActivity(intent);
+            }
+
+            @Override
+            public void onSchoolLongClick(School school) {
+                showSchoolActionDialog(school);
+            }
         });
 
         recyclerView.setAdapter(adapter);
@@ -139,6 +149,120 @@ public class SchoolList extends Fragment {
                 recyclerView.setVisibility(View.GONE);
             }
         });
+    }
+
+    private void showSchoolActionDialog(School school) {
+        new SweetAlertDialog(requireContext(), SweetAlertDialog.NORMAL_TYPE)
+                .setTitleText("School Actions")
+                .setContentText("What would you like to do with " + school.getName() + "?")
+                .setConfirmText("Edit")
+                .setCancelText("Delete")
+                .showCancelButton(true)
+                .setConfirmClickListener(sDialog -> {
+                    sDialog.dismissWithAnimation();
+                    editSchool(school);
+                })
+                .setCancelClickListener(sDialog -> {
+                    sDialog.dismissWithAnimation();
+                    showDeleteConfirmationDialog(school);
+                })
+                .show();
+    }
+
+    private void editSchool(School school) {
+        // Instead of using EditSchoolActivity, launch the existing activity_register_school
+        // but pass edit mode data through intent
+        Intent intent = new Intent(getContext(), activity_register_school.class);
+        intent.putExtra("edit_mode", true);
+        intent.putExtra("school_id", school.getId());
+        intent.putExtra("school_name", school.getName());
+        intent.putExtra("school_address", school.getAddress());
+        intent.putExtra("school_contact", school.getContact());
+        intent.putExtra("direct_to_edit", true); // Flag to go directly to the Add School tab
+        startActivity(intent);
+    }
+
+    private void showDeleteConfirmationDialog(School school) {
+        new SweetAlertDialog(requireContext(), SweetAlertDialog.WARNING_TYPE)
+                .setTitleText("Delete School")
+                .setContentText("Are you sure you want to delete " + school.getName() + "?\n\nThis action cannot be undone and will remove all associated students and appointments.")
+                .setConfirmText("Yes, Delete")
+                .setCancelText("Cancel")
+                .showCancelButton(true)
+                .setConfirmClickListener(sDialog -> {
+                    sDialog.dismissWithAnimation();
+                    deleteSchool(school);
+                })
+                .setCancelClickListener(SweetAlertDialog::dismissWithAnimation)
+                .show();
+    }
+
+    private void deleteSchool(School school) {
+        SharedPreferences prefs = requireContext().getSharedPreferences("UserSession", Context.MODE_PRIVATE);
+        int userId = prefs.getInt("user_id", -1);
+
+        if (userId == -1) {
+            showErrorDialog("User session expired. Please log in again.");
+            return;
+        }
+
+        // Show loading dialog
+        SweetAlertDialog loadingDialog = new SweetAlertDialog(requireContext(), SweetAlertDialog.PROGRESS_TYPE)
+                .setTitleText("Deleting School")
+                .setContentText("Please wait...");
+        loadingDialog.setCancelable(false);
+        loadingDialog.show();
+
+        ApiInterface api = ApiClient.getClient().create(ApiInterface.class);
+        Call<GenericResponse> call = api.deleteSchool(school.getId(), userId);
+
+        call.enqueue(new Callback<GenericResponse>() {
+            @SuppressLint("NotifyDataSetChanged")
+            @Override
+            public void onResponse(@NonNull Call<GenericResponse> call, @NonNull Response<GenericResponse> response) {
+                loadingDialog.dismissWithAnimation();
+
+                if (response.isSuccessful() && response.body() != null) {
+                    GenericResponse res = response.body();
+                    if (res.isSuccess()) {
+                        // Remove school from list and refresh UI
+                        schoolList.remove(school);
+                        adapter.notifyDataSetChanged();
+
+                        // Check if list is empty
+                        if (schoolList.isEmpty()) {
+                            tvEmptyMessage.setText("No " + status.toLowerCase() + " schools");
+                            tvEmptyMessage.setVisibility(View.VISIBLE);
+                            recyclerView.setVisibility(View.GONE);
+                        }
+
+                        new SweetAlertDialog(requireContext(), SweetAlertDialog.SUCCESS_TYPE)
+                                .setTitleText("Success")
+                                .setContentText("School deleted successfully!")
+                                .setConfirmClickListener(SweetAlertDialog::dismissWithAnimation)
+                                .show();
+                    } else {
+                        showErrorDialog(res.getMessage());
+                    }
+                } else {
+                    showErrorDialog("Server error: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<GenericResponse> call, @NonNull Throwable t) {
+                loadingDialog.dismissWithAnimation();
+                showErrorDialog("Connection Error: " + t.getMessage());
+            }
+        });
+    }
+
+    private void showErrorDialog(String message) {
+        new SweetAlertDialog(requireContext(), SweetAlertDialog.ERROR_TYPE)
+                .setTitleText("Error")
+                .setContentText(message)
+                .setConfirmClickListener(SweetAlertDialog::dismissWithAnimation)
+                .show();
     }
 
 }
