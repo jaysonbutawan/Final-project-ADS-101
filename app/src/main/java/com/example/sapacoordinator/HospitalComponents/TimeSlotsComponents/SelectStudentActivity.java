@@ -75,23 +75,33 @@ public class SelectStudentActivity extends AppCompatActivity implements BookingS
         currentBookedCount = getIntent().getIntExtra("booked_count", 0);
         availableSlots = maxCapacity - currentBookedCount;
 
-        // Log the received data
-        Log.d("DEBUG_", "Received booking data:");
-        Log.d("DEBUG_", "School ID: " + schoolId);
-        Log.d("DEBUG_", "Hospital ID: " + hospitalId);
-        Log.d("DEBUG_", "Department ID: " + departmentId);
-        Log.d("DEBUG_", "Date Slot ID: " + dateSlotId);
-        Log.d("DEBUG_", "Time Slot ID: " + timeSlotId);
-        Log.d("DEBUG_", "Max Capacity: " + maxCapacity);
-        Log.d("DEBUG_", "Booked Count: " + currentBookedCount);
-        Log.d("DEBUG_", "Available Slots: " + availableSlots);
+        // ✅ Enhanced debugging for SelectStudentActivity
+        Log.d("SelectStudentActivity", "=== BOOKING DATA RECEIVED ===");
+        Log.d("SelectStudentActivity", "School ID: " + schoolId);
+        Log.d("SelectStudentActivity", "Hospital ID: " + hospitalId);
+        Log.d("SelectStudentActivity", "Department ID: " + departmentId);
+        Log.d("SelectStudentActivity", "Date Slot ID: " + dateSlotId);
+        Log.d("SelectStudentActivity", "Time Slot ID: " + timeSlotId);
+        Log.d("SelectStudentActivity", "Max Capacity: " + maxCapacity);
+        Log.d("SelectStudentActivity", "Booked Count: " + currentBookedCount);
+        Log.d("SelectStudentActivity", "Available Slots: " + availableSlots);
+
+        // ✅ Critical validation for hospital ID
+        if (hospitalId <= 0) {
+            Log.e("SelectStudentActivity", "🚨 CRITICAL: Invalid hospital ID received: " + hospitalId);
+        } else if (hospitalId < 14 || hospitalId > 16) {
+            Log.e("SelectStudentActivity", "🚨 SUSPICIOUS: Hospital ID " + hospitalId + " is outside expected range (14-16)");
+            Log.e("SelectStudentActivity", "This is likely where the invalid ID 11 is coming from!");
+        } else {
+            Log.d("SelectStudentActivity", "✅ Hospital ID " + hospitalId + " is within expected range");
+        }
 
         // Initialize views
         initializeViews();
 
         // Validate booking data
         if (!isBookingDataValid()) {
-            Log.e("DEBUG_", "Invalid booking data received");
+            Log.e("SelectStudentActivity", "Invalid booking data received");
             new SweetAlertDialog(this, SweetAlertDialog.ERROR_TYPE)
                     .setTitleText("Invalid Data!")
                     .setContentText("Some booking information is missing. Please go back and try again.")
@@ -270,28 +280,55 @@ public class SelectStudentActivity extends AppCompatActivity implements BookingS
     }
 
     private void submitBookingForAllStudents(List<Integer> studentIds, int hospitalId) {
+        // ✅ Enhanced debugging before API call
+        Log.d("SelectStudentActivity", "=== SUBMITTING BOOKING TO API ===");
+        Log.d("SelectStudentActivity", "🏥 Hospital ID being sent: " + hospitalId);
+        Log.d("SelectStudentActivity", "🏫 School ID: " + schoolId);
+        Log.d("SelectStudentActivity", "🏢 Department ID: " + departmentId);
+        Log.d("SelectStudentActivity", "📅 Date Slot ID: " + dateSlotId);
+        Log.d("SelectStudentActivity", "⏰ Time Slot ID: " + timeSlotId);
+        Log.d("SelectStudentActivity", "👥 Student IDs: " + studentIds);
+
+//        // ✅ Final validation before sending
+//        if (hospitalId < 14 || hospitalId > 16) {
+//            Log.e("SelectStudentActivity", "🚨 ABOUT TO SEND INVALID HOSPITAL ID: " + hospitalId);
+//            Log.e("SelectStudentActivity", "Expected range: 14-16, but got: " + hospitalId);
+//
+//            // Show error and abort
+//            handleBookingError("Invalid hospital ID detected: " + hospitalId + ". Expected range: 14-16");
+//            return;
+//        }
+
         ApiInterface api = ApiClient.getClient().create(ApiInterface.class);
         String studentIdsJson = new Gson().toJson(studentIds);
-        Call<GenericResponse> call = api.bookAppointment(schoolId, hospitalId, departmentId,dateSlotId ,timeSlotId, studentIdsJson );
-        Log.d("DEBUG_", "Submitting booking with:");
-        Log.d("DEBUG_", "  school_id: " + schoolId);
-        Log.d("DEBUG_", "  hospital_id: " + hospitalId);
-        Log.d("DEBUG_", "  time_slot_id: " + timeSlotId);
-        Log.d("DEBUG_", "  department_id: " + departmentId);
-        Log.d("DEBUG_", "  date_slot_id: " + dateSlotId);
+        Call<GenericResponse> call = api.bookAppointment(schoolId, hospitalId, departmentId, dateSlotId, timeSlotId, studentIdsJson);
+
+        // ✅ Log the exact parameters being sent to API
+        Log.d("SelectStudentActivity", "API call parameters:");
+        Log.d("SelectStudentActivity", "  schoolId: " + schoolId);
+        Log.d("SelectStudentActivity", "  hospitalId: " + hospitalId);
+        Log.d("SelectStudentActivity", "  departmentId: " + departmentId);
+        Log.d("SelectStudentActivity", "  dateSlotId: " + dateSlotId);
+        Log.d("SelectStudentActivity", "  timeSlotId: " + timeSlotId);
+        Log.d("SelectStudentActivity", "  studentIdsJson: " + studentIdsJson);
 
         call.enqueue(new Callback<>() {
             @Override
             public void onResponse(@NonNull Call<GenericResponse> call, @NonNull Response<GenericResponse> response) {
+                // ✅ Log the response details
+                Log.d("SelectStudentActivity", "=== API RESPONSE RECEIVED ===");
+                Log.d("SelectStudentActivity", "Response code: " + response.code());
+                Log.d("SelectStudentActivity", "Response message: " + response.message());
+
                 if (response.isSuccessful() && response.body() != null) {
                     GenericResponse genericResponse = response.body();
 
                     // Add debug logging to see the actual response
-                    Log.d("DEBUG_", "Response received:");
-                    Log.d("DEBUG_", "Raw response: " + new Gson().toJson(genericResponse));
-                    Log.d("DEBUG_", "Status: " + response.code());
-                    Log.d("DEBUG_", "Message: " + genericResponse.getMessage());
-                    Log.d("DEBUG_", "isSuccess(): " + genericResponse.isSuccess());
+                    Log.d("SelectStudentActivity", "Response body:");
+                    Log.d("SelectStudentActivity", "Raw response: " + new Gson().toJson(genericResponse));
+                    Log.d("SelectStudentActivity", "Status: " + response.code());
+                    Log.d("SelectStudentActivity", "Message: " + genericResponse.getMessage());
+                    Log.d("SelectStudentActivity", "isSuccess(): " + genericResponse.isSuccess());
 
                     // Check for success using multiple conditions
                     boolean isSuccessful = genericResponse.isSuccess() ||
@@ -301,23 +338,25 @@ public class SelectStudentActivity extends AppCompatActivity implements BookingS
                                           genericResponse.getMessage().toLowerCase().contains("booked"));
 
                     if (isSuccessful) {
-                        Log.d("DEBUG_", "Booking successful for all students");
-                        Log.d("DEBUG_", "Response: " + genericResponse.getMessage());
+                        Log.d("SelectStudentActivity", "✅ Booking successful for all students");
+                        Log.d("SelectStudentActivity", "Response: " + genericResponse.getMessage());
                         refreshBookingCount();
                         showBookingSuccessDialog();
                     } else {
                         // Booking failed
-                        Log.d("DEBUG_", "Booking failed - Status check failed");
-                        Log.d("DEBUG_", "Message received: " + genericResponse.getMessage());
+                        Log.e("SelectStudentActivity", "❌ Booking failed - Status check failed");
+                        Log.e("SelectStudentActivity", "Message received: " + genericResponse.getMessage());
                         handleBookingError("Booking failed: " + genericResponse.getMessage());
                     }
                 } else {
+                    Log.e("SelectStudentActivity", "❌ API response failed: " + response.code() + " - " + response.message());
                     handleBookingError("API response failed: " + response.code() + " - " + response.message());
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call<GenericResponse> call, @NonNull Throwable t) {
+                Log.e("SelectStudentActivity", "❌ Network error during booking", t);
                 handleBookingError("Network error: " + t.getMessage());
             }
         });

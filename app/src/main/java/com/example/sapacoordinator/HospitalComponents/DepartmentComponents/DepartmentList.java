@@ -60,17 +60,27 @@ public class DepartmentList extends Fragment {
             hospitalId = getArguments().getInt("hospital_id", -1);
             schoolId = getArguments().getInt("school_id", -1);
 
-            Log.d("DEBUG_", "DepartmentList received:");
-            Log.d("DEBUG_", "  hospitalId: " + hospitalId);
-            Log.d("DEBUG_", "  schoolId: " + schoolId);
+            // ✅ Enhanced debugging for DepartmentList
+            Log.d("DepartmentList", "=== RECEIVED ARGUMENTS ===");
+            Log.d("DepartmentList", "Hospital ID: " + hospitalId);
+            Log.d("DepartmentList", "School ID: " + schoolId);
+
+            // ✅ Validate hospital ID range
+            if (hospitalId < 14 || hospitalId > 16) {
+                Log.e("DepartmentList", "🚨 SUSPICIOUS: Hospital ID " + hospitalId + " is outside expected range (14-16)");
+            } else {
+                Log.d("DepartmentList", "✅ Hospital ID " + hospitalId + " is within expected range");
+            }
         }
 
-        adapter = new DepartmentAdapter(departmentList, requireContext(), schoolId);
+        // ✅ FIXED: Pass hospitalId to adapter constructor
+        adapter = new DepartmentAdapter(departmentList, requireContext(), schoolId, hospitalId);
         recyclerView.setAdapter(adapter);
 
         if (hospitalId != -1) {
             loadDepartments(hospitalId);
         } else {
+            Log.e("DepartmentList", "🚨 CRITICAL: Invalid hospital ID (-1)");
             tvEmptyMessage.setText("Invalid hospital ID.");
             tvEmptyMessage.setVisibility(View.VISIBLE);
             recyclerView.setVisibility(View.GONE);

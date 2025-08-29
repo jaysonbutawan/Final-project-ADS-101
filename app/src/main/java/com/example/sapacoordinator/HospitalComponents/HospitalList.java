@@ -90,42 +90,95 @@ public class HospitalList extends Fragment {
         SharedPreferences prefs = requireContext().getSharedPreferences("UserSession", Context.MODE_PRIVATE);
         int userId = prefs.getInt("user_id", -1);
 
+        Log.d("HospitalDebug", "Loading hospitals for userId: " + userId);
+
         if (userId == -1) {
             tvEmptyMessage.setText("User session expired. Please log in again.");
             tvEmptyMessage.setVisibility(View.VISIBLE);
             recyclerView.setVisibility(View.GONE);
+            Log.w("HospitalDebug", "User session expired, stopping hospital load.");
             return;
         }
 
         ApiInterface api = ApiClient.getClient().create(ApiInterface.class);
         Call<List<Hospital>> call = api.getHospitals();
 
+        Log.d("HospitalDebug", "API request initiated to fetch hospitals.");
+
         call.enqueue(new Callback<>() {
             @SuppressLint("NotifyDataSetChanged")
             @Override
             public void onResponse(@NonNull Call<List<Hospital>> call, @NonNull Response<List<Hospital>> response) {
+                Log.d("HospitalDebug", "API response received. Success=" + response.isSuccessful());
+
                 if (response.isSuccessful() && response.body() != null) {
+                    List<Hospital> hospitals = response.body();
+                    Log.d("HospitalDebug", "Hospitals received: " + hospitals.size());
+
+                    // ✅ Enhanced debugging: Log each hospital with detailed info
+                    for (int i = 0; i < hospitals.size(); i++) {
+                        Hospital hospital = hospitals.get(i);
+                        Log.d("HospitalDebug", "Hospital[" + i + "] -> ID=" + hospital.getHospitalId() +
+                                ", Name=" + hospital.getHospitalName() +
+                                ", Address=" + hospital.getHospitalAddress());
+
+                        // ✅ Validate hospital ID is not null/zero
+                        if (hospital.getHospitalId() <= 0) {
+                            Log.e("HospitalDebug", "⚠️ INVALID HOSPITAL ID DETECTED: " + hospital.getHospitalId() +
+                                    " for hospital: " + hospital.getHospitalName());
+                        }
+                    }
+
                     hospitalList.clear();
-                    hospitalList.addAll(response.body());
+                    hospitalList.addAll(hospitals);
+
+                    // ✅ Verify data integrity after adding to list
+                    Log.d("HospitalDebug", "Verifying hospital list integrity:");
+                    for (int i = 0; i < hospitalList.size(); i++) {
+                        Hospital hospital = hospitalList.get(i);
+                        Log.d("HospitalDebug", "hospitalList[" + i + "] -> ID=" + hospital.getHospitalId() +
+                                ", Name=" + hospital.getHospitalName());
+                    }
+
                     adapter.notifyDataSetChanged();
+
                     if (hospitalList.isEmpty()) {
                         tvEmptyMessage.setText("No hospitals found.");
                         tvEmptyMessage.setVisibility(View.VISIBLE);
                         recyclerView.setVisibility(View.GONE);
+                        Log.w("HospitalDebug", "Hospital list is empty.");
                     } else {
                         tvEmptyMessage.setVisibility(View.GONE);
                         recyclerView.setVisibility(View.VISIBLE);
+                        Log.d("HospitalDebug", "Hospital list displayed with " + hospitalList.size() + " items.");
                     }
+                } else {
+                    Log.e("HospitalDebug", "Response failed or empty body. Code=" + response.code());
+                    // ✅ Enhanced error logging
+                    if (response.errorBody() != null) {
+                        try {
+                            String errorBody = response.errorBody().string();
+                            Log.e("HospitalDebug", "Error body: " + errorBody);
+                        } catch (Exception e) {
+                            Log.e("HospitalDebug", "Failed to read error body: " + e.getMessage());
+                        }
+                    }
+                    tvEmptyMessage.setText("Failed to load hospitals (empty response).");
+                    tvEmptyMessage.setVisibility(View.VISIBLE);
+                    recyclerView.setVisibility(View.GONE);
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call<List<Hospital>> call, @NonNull Throwable t) {
+                Log.e("API_ERROR", "Load failed: " + t.getMessage(), t);
+                // ✅ Enhanced failure logging
+                Log.e("HospitalDebug", "API call stack trace:", t);
                 tvEmptyMessage.setText("Failed to load hospitals");
-                Log.e("API_ERROR", "Load failed", t);
                 tvEmptyMessage.setVisibility(View.VISIBLE);
                 recyclerView.setVisibility(View.GONE);
             }
         });
     }
+
 }

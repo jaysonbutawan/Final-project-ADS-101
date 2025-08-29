@@ -49,16 +49,14 @@ public class LoginActivity extends AppCompatActivity {
             String email = login_email_input.getText().toString().trim();
             String password = login_password_input.getText().toString().trim();
 
-            // 1️⃣ Validate fields
             if (email.isEmpty() || password.isEmpty()) {
                 new SweetAlertDialog(LoginActivity.this, SweetAlertDialog.WARNING_TYPE)
                         .setTitleText("Missing Fields")
                         .setContentText("Please fill in both Email and Password.")
                         .show();
-                return; // Stop execution here
+                return;
             }
 
-            // 2️⃣ Show loading dialog while detecting server
             showLoadingDialog();
 
             ServerDetector.detectServer(LoginActivity.this, new ServerDetector.OnServerFoundListener() {

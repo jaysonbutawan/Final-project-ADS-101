@@ -88,6 +88,13 @@ SignUpActivity extends AppCompatActivity {
                     .show();
             return;
         }
+        if (password.length() != 5) {
+            new SweetAlertDialog(this, SweetAlertDialog.WARNING_TYPE)
+                    .setTitleText("Invalid Password")
+                    .setContentText("Password must be exactly 5 characters long.")
+                    .show();
+            return;
+        }
 
 
         showLoadingDialog();
@@ -142,7 +149,6 @@ SignUpActivity extends AppCompatActivity {
                 } else {
                     showError("Server error: " + response.code());
                 }
-                resetFields();
             }
 
             @Override

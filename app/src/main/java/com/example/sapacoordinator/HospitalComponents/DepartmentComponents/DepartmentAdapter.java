@@ -21,16 +21,20 @@ public class DepartmentAdapter extends RecyclerView.Adapter<DepartmentAdapter.Vi
 
     private final List<Department> departmentList;
     private final Context context;
-    private final int schoolId; // ✅ Add school_id field
+    private final int schoolId;
+    private final int hospitalId; // ✅ Add hospital_id field
 
     @SuppressLint("NotifyDataSetChanged")
-    public DepartmentAdapter(List<Department> departmentList, Context context, int schoolId) {
+    public DepartmentAdapter(List<Department> departmentList, Context context, int schoolId, int hospitalId) {
         this.departmentList = departmentList;
         this.context = context;
-        this.schoolId = schoolId; // ✅ Store school_id
+        this.schoolId = schoolId;
+        this.hospitalId = hospitalId; // ✅ Store hospital_id correctly
 
-        // ✅ Add debug logging to track school_id in adapter constructor
-        Log.d("DEBUG_", "DepartmentAdapter created with school_id: " + schoolId);
+        // ✅ Enhanced debug logging
+        Log.d("DepartmentAdapter", "=== ADAPTER CREATED ===");
+        Log.d("DepartmentAdapter", "School ID: " + schoolId);
+        Log.d("DepartmentAdapter", "Hospital ID: " + hospitalId);
 
         notifyDataSetChanged();
     }
@@ -49,17 +53,28 @@ public class DepartmentAdapter extends RecyclerView.Adapter<DepartmentAdapter.Vi
         holder.tvDepartmentName.setText(department.getSection_name());
         holder.tvPrice.setText(String.valueOf(department.getPrice_per_student()));
         holder.tvHospitalName.setText(department.getHospital_name());
+
         holder.itemView.setOnClickListener(v -> {
+            // ✅ Enhanced debugging before intent creation
+            Log.d("DepartmentAdapter", "=== DEPARTMENT CLICK EVENT ===");
+            Log.d("DepartmentAdapter", "Department clicked: " + department.getSection_name());
+            Log.d("DepartmentAdapter", "Department ID: " + department.getDepartment_id());
+            Log.d("DepartmentAdapter", "Hospital ID (from adapter): " + hospitalId);
+            Log.d("DepartmentAdapter", "School ID: " + schoolId);
+
             Intent intent = new Intent(context, DateTimeSlotSelectionActivity.class);
-            intent.putExtra("hospital_id", department.getDepartment_id());
+            // ✅ FIXED: Pass the correct hospital_id instead of department_id
+            intent.putExtra("hospital_id", hospitalId); // ✅ CORRECT: Use hospitalId from adapter
             intent.putExtra("hospital_name", department.getHospital_name());
             intent.putExtra("department_id", department.getDepartment_id());
-            intent.putExtra("school_id", schoolId); // ✅ Pass school_id to DateTimeSlotSelectionActivity
+            intent.putExtra("school_id", schoolId);
 
-            Log.d("DEBUG_", "✅ Going to DateTimeSlotSelectionActivity");
-            Log.d("DEBUG_", "✅ Hospital name: " + department.getHospital_name());
-            Log.d("DEBUG_", "✅ Department ID: " + department.getDepartment_id());
-            Log.d("DEBUG_", "✅ School ID: " + schoolId+ " Select date and time"); // ✅ Log school_id
+            // ✅ Log the corrected intent extras
+            Log.d("DepartmentAdapter", "Intent extras (CORRECTED):");
+            Log.d("DepartmentAdapter", "  hospital_id: " + hospitalId + " ✅ FIXED!");
+            Log.d("DepartmentAdapter", "  department_id: " + department.getDepartment_id());
+            Log.d("DepartmentAdapter", "  school_id: " + schoolId);
+            Log.d("DepartmentAdapter", "Starting DateTimeSlotSelectionActivity...");
 
             context.startActivity(intent);
         });
@@ -76,7 +91,6 @@ public class DepartmentAdapter extends RecyclerView.Adapter<DepartmentAdapter.Vi
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             tvDepartmentName = itemView.findViewById(R.id.tvSectionName);
-
             tvPrice = itemView.findViewById(R.id.tvPrice);
             tvHospitalName = itemView.findViewById(R.id.tvHospitalName);
         }

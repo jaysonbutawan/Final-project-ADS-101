@@ -1,5 +1,6 @@
 package com.example.sapacoordinator.SchoolComponents;
 
+import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -72,22 +73,19 @@ public class AddSchoolFragment extends Fragment {
         return view;
     }
 
+    @SuppressLint("SetTextI18n")
     private void checkEditMode() {
-        // First check fragment arguments (for EditSchoolActivity)
         if (getArguments() != null) {
             isEditMode = getArguments().getBoolean("edit_mode", false);
 
             if (isEditMode) {
-                // Change button text and populate fields
-                btnRegister.setText("Update School");
+                btnRegister.setText("Update");
 
-                // Get school data from fragment arguments
                 schoolId = getArguments().getInt("school_id", -1);
                 String schoolName = getArguments().getString("school_name");
                 String schoolAddress = getArguments().getString("school_address");
                 String schoolContact = getArguments().getString("school_contact");
 
-                // Populate fields
                 if (schoolName != null) etSchoolName.setText(schoolName);
                 if (schoolAddress != null) etAddress.setText(schoolAddress);
                 if (schoolContact != null) etContactInfo.setText(schoolContact);
@@ -95,21 +93,17 @@ public class AddSchoolFragment extends Fragment {
             }
         }
 
-        // Fallback to activity intent check (for direct activity launch)
         if (getActivity() != null && getActivity().getIntent() != null) {
             isEditMode = getActivity().getIntent().getBooleanExtra("edit_mode", false);
 
             if (isEditMode) {
-                // Change button text and populate fields
-                btnRegister.setText("Update School");
+                btnRegister.setText("Update");
 
-                // Get school data from intent
                 schoolId = getActivity().getIntent().getIntExtra("school_id", -1);
                 String schoolName = getActivity().getIntent().getStringExtra("school_name");
                 String schoolAddress = getActivity().getIntent().getStringExtra("school_address");
                 String schoolContact = getActivity().getIntent().getStringExtra("school_contact");
 
-                // Populate fields
                 if (schoolName != null) etSchoolName.setText(schoolName);
                 if (schoolAddress != null) etAddress.setText(schoolAddress);
                 if (schoolContact != null) etContactInfo.setText(schoolContact);
