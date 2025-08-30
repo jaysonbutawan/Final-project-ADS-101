@@ -77,14 +77,15 @@ public class TimeSlotAdapter extends RecyclerView.Adapter<TimeSlotAdapter.ViewHo
         });
     }
 
+
     @Override
     public int getItemCount() {
         return timeSlotList.size();
     }
 
+
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvTime, tvCapacity;
-
         public ViewHolder(View itemView) {
             super(itemView);
             tvTime = itemView.findViewById(R.id.tvTimeSlot);

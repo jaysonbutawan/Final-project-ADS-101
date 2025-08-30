@@ -25,6 +25,9 @@ public class DateTimeSlotSelectionActivity extends AppCompatActivity
     private  int selectedBookedCount = 0;
     private Button btnBookAppointment;
     private int hospitalId =-1;
+    private String selectedTrainingDate = "";
+    private String selectedTimeSlotText = "";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,40 +92,46 @@ public class DateTimeSlotSelectionActivity extends AppCompatActivity
 
     @Override
     public void onDateSelected(int dateSlotId) {
-        Log.d("DEBUG_", "Selected dateSlotId: " + dateSlotId);
         selectedDateSlotId = dateSlotId;
-        // Reset time slot selection when date changes
+
+        DateSlotList dateSlotFragment = (DateSlotList) getSupportFragmentManager()
+                .findFragmentById(R.id.dateSlotContainer);
+        if (dateSlotFragment != null) {
+            selectedTrainingDate = dateSlotFragment.getSelectedDateString(dateSlotId);
+            Log.d("DEBUG_", "Selected Training Date for Booking: " + selectedTrainingDate);
+        }
+
+        // reset time slot when new date is picked
         selectedTimeSlotId = -1;
-        selectedTimeSlotCapacity = 0; // Reset capacity when date changes
+        selectedTimeSlotText = "";
+        selectedTimeSlotCapacity = 0;
+
         updateBookButtonState();
 
-        TimeSlotList existingFragment = (TimeSlotList) getSupportFragmentManager()
-                .findFragmentById(R.id.timeSlotContainer);
-
-        if (existingFragment != null) {
-            existingFragment.updateTimeSlots(dateSlotId);
-        } else {
-            TimeSlotList timeslotList = TimeSlotList.newInstance(dateSlotId);
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.timeSlotContainer, timeslotList)
-                    .commit();
-        }
+        // reload timeslots
+        TimeSlotList timeslotList = TimeSlotList.newInstance(dateSlotId);
+        timeslotList.setCallback(this);
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.timeSlotContainer, timeslotList)
+                .commit();
     }
+
 
     @Override
     public void onTimeSlotSelected(int timeSlotId) {
-        Log.d("DEBUG_", "Selected timeSlotId: " + timeSlotId);
         selectedTimeSlotId = timeSlotId;
 
-        // Get the selected time slot capacity from the TimeSlotList fragment
-        TimeSlotList timeSlotFragment = (TimeSlotList) getSupportFragmentManager().findFragmentById(R.id.timeSlotContainer);
+        TimeSlotList timeSlotFragment = (TimeSlotList) getSupportFragmentManager()
+                .findFragmentById(R.id.timeSlotContainer);
         if (timeSlotFragment != null) {
             selectedTimeSlotCapacity = timeSlotFragment.getSelectedTimeSlotCapacity(timeSlotId);
-            Log.d("DEBUG_", "Selected time slot capacity: " + selectedTimeSlotCapacity);
+            selectedTimeSlotText = timeSlotFragment.getSelectedTimeSlotText(timeSlotId);
+
         }
 
         updateBookButtonState();
     }
+
 
     private boolean isBookingDataValid() {
         // Add debug logging to see what values we have
@@ -163,16 +172,18 @@ public class DateTimeSlotSelectionActivity extends AppCompatActivity
         intent.putExtra("school_id", schoolId);
         intent.putExtra("hospital_id", hospitalId);
         intent.putExtra("department_id", departmentId);
-        intent.putExtra("date_slot_id", selectedDateSlotId);  // Fixed: correct key name
+        intent.putExtra("date_slot_id", selectedDateSlotId);
         intent.putExtra("time_slot_id", selectedTimeSlotId);
         intent.putExtra("capacity", selectedTimeSlotCapacity);
-        intent.putExtra("booked_count",selectedBookedCount);// Fixed: correct key name
-
+        intent.putExtra("booked_count",selectedBookedCount);
+        intent.putExtra("training_date", selectedTrainingDate);
+        intent.putExtra("time_slot", selectedTimeSlotText);
         Log.d("BookingData", "Proceeding with: school_id=" + schoolId +
                 ", department_id=" + departmentId +
                 ", date_slot_id=" + selectedDateSlotId +
                 ", time_slot_id=" + selectedTimeSlotId +
                 ", capacity=" + selectedTimeSlotCapacity);
+        Log.d("DEBUG_", "Selected Time Slot:proceed to selection " + selectedTimeSlotText);
 
         startActivity(intent);
     }

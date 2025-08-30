@@ -53,34 +53,19 @@ public class DepartmentList extends Fragment {
 
         recyclerView = view.findViewById(R.id.rvDepartments);
         tvEmptyMessage = view.findViewById(R.id.tvEmptyMessage);
-
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
 
         if (getArguments() != null) {
             hospitalId = getArguments().getInt("hospital_id", -1);
             schoolId = getArguments().getInt("school_id", -1);
-
-            // ✅ Enhanced debugging for DepartmentList
-            Log.d("DepartmentList", "=== RECEIVED ARGUMENTS ===");
-            Log.d("DepartmentList", "Hospital ID: " + hospitalId);
-            Log.d("DepartmentList", "School ID: " + schoolId);
-
-            // ✅ Validate hospital ID range
-            if (hospitalId < 14 || hospitalId > 16) {
-                Log.e("DepartmentList", "🚨 SUSPICIOUS: Hospital ID " + hospitalId + " is outside expected range (14-16)");
-            } else {
-                Log.d("DepartmentList", "✅ Hospital ID " + hospitalId + " is within expected range");
-            }
         }
 
-        // ✅ FIXED: Pass hospitalId to adapter constructor
         adapter = new DepartmentAdapter(departmentList, requireContext(), schoolId, hospitalId);
         recyclerView.setAdapter(adapter);
 
         if (hospitalId != -1) {
             loadDepartments(hospitalId);
         } else {
-            Log.e("DepartmentList", "🚨 CRITICAL: Invalid hospital ID (-1)");
             tvEmptyMessage.setText("Invalid hospital ID.");
             tvEmptyMessage.setVisibility(View.VISIBLE);
             recyclerView.setVisibility(View.GONE);
@@ -102,15 +87,10 @@ public class DepartmentList extends Fragment {
                     departmentList.clear();
                     departmentList.addAll(response.body());
                     adapter.notifyDataSetChanged();
-                    Log.d("API_RESPONSE","API department has been called" + new Gson().toJson(response.body()));
-                    Log.d("API_RESPONSE", "Departments loaded: " + new Gson().toJson(response.body()));
-                    Log.d("API_STATUS", "✅ API Call Successful");
                     if (departmentList.isEmpty()) {
                         tvEmptyMessage.setText("No departments found.");
                         tvEmptyMessage.setVisibility(View.VISIBLE);
                         recyclerView.setVisibility(View.GONE);
-                        Log.d("API_RESPONSE", "No departments found for hospital ID: " + hospitalId);
-                        Log.d("API_STATUS", "✅ API Call not found");
                     } else {
                         tvEmptyMessage.setVisibility(View.GONE);
                         recyclerView.setVisibility(View.VISIBLE);
@@ -128,9 +108,6 @@ public class DepartmentList extends Fragment {
                 tvEmptyMessage.setText("Failed to loading departments.");
                 tvEmptyMessage.setVisibility(View.VISIBLE);
                 recyclerView.setVisibility(View.GONE);
-                Log.e("API_ERROR", "Department load failed", t);
-                Log.d("API_STATUS", "✅ failed to load departments");
-
             }
         });
     }

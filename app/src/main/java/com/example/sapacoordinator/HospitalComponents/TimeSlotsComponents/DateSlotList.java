@@ -141,4 +141,15 @@ public class DateSlotList extends Fragment {
             }
         });
     }
+
+    // ✅ Method to get the date string for a selected date slot
+    public String getSelectedDateString(int dateSlotId) {
+        for (DateSlot dateSlot : dateSlotList) {
+            if (dateSlot.getSlotDateId() == dateSlotId) {
+                // Return the training date string
+                return dateSlot.getSlotDate(); // Assuming getTraining_date() returns the date string
+            }
+        }
+        return "Unknown Date"; // Default fallback if not found
+    }
 }

@@ -40,4 +40,9 @@
     <string name="contact_info">Contact Info</string>
     <string name="select_a_hospital_to_manage_bookings_and_bills">Select a hospital to manage bookings and bills</string>
     <string name="view_amp_filter_bookings"><![CDATA[View & Filter Bookings]]></string>
+
+    <!-- Payment Student Adapter Strings -->
+    <string name="student_name_format">Student: %1$s</string>
+    <string name="student_id_format">ID: %1$s</string>
+    <string name="student_email_format">Email: %1$s</string>
 </resources>

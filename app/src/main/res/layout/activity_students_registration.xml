@@ -30,6 +30,7 @@
             android:layout_marginBottom="24dp">
 
             <TextView
+                android:id="@+id/tvSchoolName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="kk"
@@ -37,6 +38,7 @@
                 android:textStyle="bold"/>
 
             <TextView
+                android:id="@+id/tvAddress"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="kk, kk"
@@ -139,7 +141,7 @@
                     android:id="@+id/etDateOfBirth"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="YYYY/MM/MM"/>
+                    android:hint="yyyy/mm/dd"/>
             </com.google.android.material.textfield.TextInputLayout>
         </LinearLayout>
         <!-- Gender Selection with Chips -->

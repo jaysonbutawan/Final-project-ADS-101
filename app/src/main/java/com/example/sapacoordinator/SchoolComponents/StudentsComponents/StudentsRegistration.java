@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
@@ -46,8 +47,19 @@ public class StudentsRegistration extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+        String schoolName = getIntent().getStringExtra("school_name");
+        String schoolAddress = getIntent().getStringExtra("school_address");
 
-        // Initialize views
+        TextView tvSchoolName = findViewById(R.id.tvSchoolName);
+        TextView tvSchoolAddress = findViewById(R.id.tvAddress);
+
+        if (schoolName != null) {
+            tvSchoolName.setText(schoolName);
+        }
+
+        if (schoolAddress != null) {
+            tvSchoolAddress.setText(schoolAddress);
+        }
         etFirstName = findViewById(R.id.etFirstName);
         etLastName = findViewById(R.id.etLastName);
         etPhoneNumber = findViewById(R.id.etPhoneNumber);

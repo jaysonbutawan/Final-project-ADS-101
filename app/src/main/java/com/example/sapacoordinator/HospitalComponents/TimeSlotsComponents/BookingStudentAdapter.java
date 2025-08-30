@@ -10,10 +10,8 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.example.sapacoordinator.R;
 import com.example.sapacoordinator.SchoolComponents.StudentsComponents.Student;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -22,9 +20,9 @@ public class BookingStudentAdapter extends RecyclerView.Adapter<BookingStudentAd
 
     private final Context context;
     private final List<Student> studentList;
-    private final Set<Integer> selectedStudentIds; // Track selected students by ID
+    private final Set<Integer> selectedStudentIds;
     private final OnStudentSelectionListener listener;
-    private int maxSelections = 0; // No default, must be set
+    private int maxSelections = 0;
 
     public interface OnStudentSelectionListener {
         void onStudentSelected(Student student, boolean isSelected);
@@ -36,7 +34,6 @@ public class BookingStudentAdapter extends RecyclerView.Adapter<BookingStudentAd
         this.studentList = studentList;
         this.selectedStudentIds = new HashSet<>();
         this.listener = listener;
-        // maxSelections must be set by setMaxSelections() after construction
     }
 
     public void setMaxSelections(int maxSelections) {
@@ -65,23 +62,19 @@ public class BookingStudentAdapter extends RecyclerView.Adapter<BookingStudentAd
         Student student = studentList.get(position);
         int studentId = student.getStudentId();
 
-        // Set student info
         holder.tvStudentName.setText(student.getFirstname() + " " + student.getLastname());
         holder.tvStudentCode.setText(student.getStudentCode());
         holder.tvGradeAge.setText(student.getSex() + " • " + student.getAge() + " years");
-
-        // Set checkbox state
         boolean isSelected = selectedStudentIds.contains(studentId);
         holder.cbSelect.setChecked(isSelected);
 
-        // Handle checkbox clicks
-        holder.cbSelect.setOnCheckedChangeListener(null); // Clear previous listener
+
+        holder.cbSelect.setOnCheckedChangeListener(null);
         holder.cbSelect.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
-                // Check if we can add more students
                 if (selectedStudentIds.size() >= maxSelections) {
                     android.util.Log.d("BookingStudentAdapter", "Selection limit reached: " + maxSelections);
-                    holder.cbSelect.setChecked(false); // Revert checkbox
+                    holder.cbSelect.setChecked(false);
                     if (listener != null) {
                         listener.onSelectionLimitReached(maxSelections);
                     }
@@ -96,8 +89,6 @@ public class BookingStudentAdapter extends RecyclerView.Adapter<BookingStudentAd
                 listener.onStudentSelected(student, isChecked);
             }
         });
-
-        // Handle card clicks (same as checkbox)
         holder.itemView.setOnClickListener(v -> holder.cbSelect.performClick());
     }
 

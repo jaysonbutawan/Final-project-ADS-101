@@ -98,7 +98,6 @@ public class ChooseAction extends AppCompatActivity {
             Intent intent = new Intent(ChooseAction.this, HospitalActivity.class);
             intent.putExtra("school_id", schoolId);
             intent.putExtra("user_id", userId);
-            Log.d("DEBUG_", "Navigating to StudentsRegistration with school_id: " + schoolId);
             startActivity(intent);
         });
 
@@ -107,7 +106,6 @@ public class ChooseAction extends AppCompatActivity {
             Intent intent = new Intent(ChooseAction.this, HospitalActivity.class);
             intent.putExtra("school_id", schoolId);
             intent.putExtra("user_id", userId);
-            Log.d("DEBUG_", "Navigating to StudentsRegistration with school_id: " + schoolId);
             startActivity(intent);
         });
 

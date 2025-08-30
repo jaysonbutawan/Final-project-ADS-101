@@ -78,8 +78,8 @@ public class TimeSlotList extends Fragment {
             return;
         }
 
-        // clear current slots while fetching new ones
-        timeSlotList.clear(); // Clear the main list
+
+        timeSlotList.clear();
         adapter.updateData(new ArrayList<>());
 
         Call<List<TimeSlotModel>> call = api.getTimeSlots(dateSlotId);
@@ -94,9 +94,9 @@ public class TimeSlotList extends Fragment {
                         showMessage("No timeslot found for this date", true);
                     } else {
                         showMessage("", false);
-                        timeSlotList.clear(); // Clear the main list
-                        timeSlotList.addAll(newSlots); // Update the main list
-                        adapter.updateData(newSlots); // ✅ refresh adapter with new slots
+                        timeSlotList.clear();
+                        timeSlotList.addAll(newSlots);
+                        adapter.updateData(newSlots);
                     }
 
                     Log.d("API_RESPONSE", "Time slots loaded: " + newSlots.size());
@@ -116,7 +116,6 @@ public class TimeSlotList extends Fragment {
         });
     }
 
-    // ✅ Helper method to toggle empty message / recycler
     private void showMessage(String message, boolean show) {
         if (show) {
             tvEmptyMessage.setText(message);
@@ -134,14 +133,23 @@ public class TimeSlotList extends Fragment {
         }
     }
 
-    // ✅ Method to get the capacity of a selected time slot
+
     public int getSelectedTimeSlotCapacity(int timeSlotId) {
         for (TimeSlotModel timeSlot : timeSlotList) {
             if (timeSlot.getTime_slot_id() == timeSlotId) {
                 return timeSlot.getCapacity();
             }
         }
-        return 10; // Default capacity if not found
+        return 0;
+    }
+
+    public String getSelectedTimeSlotText(int timeSlotId) {
+        for (TimeSlotModel timeSlot : timeSlotList) {
+            if (timeSlot.getTime_slot_id() == timeSlotId) {
+                return timeSlot.getStart_time()+"-"+ timeSlot.getEnd_time();
+            }
+        }
+        return "Unknown Time Slot"; // Default text if not found
     }
 
     public interface OnTimeSlotSelectedListener {
@@ -154,5 +162,8 @@ public class TimeSlotList extends Fragment {
         if (context instanceof OnTimeSlotSelectedListener) {
             callback = (OnTimeSlotSelectedListener) context;
         }
+    }
+    public void setCallback(OnTimeSlotSelectedListener listener) {
+        this.callback = listener;
     }
 }

@@ -48,6 +48,7 @@ dependencies {
     implementation(libs.play.services.fitness)
     implementation(libs.legacy.support.v4)
     implementation(libs.recyclerview)
+    implementation(libs.cardview)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

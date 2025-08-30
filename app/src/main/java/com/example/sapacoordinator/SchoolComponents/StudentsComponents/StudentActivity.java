@@ -29,8 +29,8 @@ public class StudentActivity extends AppCompatActivity {
             return insets;
         });
 
-        // Get school_id from intent
         int schoolId = getIntent().getIntExtra("school_id", -1);
+
 
         if (savedInstanceState == null) {
             studentListFragment = StudentList.newInstance(schoolId);

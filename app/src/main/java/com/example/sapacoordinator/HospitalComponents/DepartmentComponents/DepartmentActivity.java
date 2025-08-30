@@ -31,40 +31,21 @@ public class DepartmentActivity extends AppCompatActivity {
         });
 
         TextView tvHospitalName = findViewById(R.id.tvHospitalName);
-        TextView tvaddress= findViewById(R.id.tvlocation);
+        TextView address= findViewById(R.id.tvlocation);
         String hospitalName = getIntent().getStringExtra("hospital_name");
         String hospitalAddress = getIntent().getStringExtra("hospital_address");
         int hospitalId = getIntent().getIntExtra("hospital_id", -1);
-        int schoolId = getIntent().getIntExtra("school_id", -1); // ✅ Get school_id
-
-        // ✅ Enhanced debugging for DepartmentActivity
-        Log.d("DepartmentActivity", "=== RECEIVED INTENT DATA ===");
-        Log.d("DepartmentActivity", "Hospital Name: " + hospitalName);
-        Log.d("DepartmentActivity", "Hospital Address: " + hospitalAddress);
-        Log.d("DepartmentActivity", "Hospital ID: " + hospitalId);
-        Log.d("DepartmentActivity", "School ID: " + schoolId);
-
-        // ✅ Validate the received hospital ID
-        if (hospitalId <= 0) {
-            Log.e("DepartmentActivity", "🚨 CRITICAL: Invalid hospital ID received: " + hospitalId);
-        } else if (hospitalId < 14 || hospitalId > 16) {
-            Log.e("DepartmentActivity", "🚨 SUSPICIOUS: Hospital ID " + hospitalId + " is outside expected range (14-16)");
-            Log.e("DepartmentActivity", "This corruption happened BEFORE DepartmentActivity!");
-        } else {
-            Log.d("DepartmentActivity", "✅ Hospital ID " + hospitalId + " is within expected range");
-        }
+        int schoolId = getIntent().getIntExtra("school_id", -1);
 
         if (tvHospitalName != null && hospitalName != null) {
             tvHospitalName.setText(hospitalName);
-            tvaddress.setText(hospitalAddress);
+            address.setText(hospitalAddress);
         } else {
             assert tvHospitalName != null;
             tvHospitalName.setText("Hospital Name Not Available");
         }
 
         if (savedInstanceState == null) {
-            Log.d("DepartmentActivity", "Creating DepartmentList fragment with hospitalId: " + hospitalId + ", schoolId: " + schoolId);
-
             DepartmentList departmentList = DepartmentList.newInstance(hospitalId, schoolId);
 
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
