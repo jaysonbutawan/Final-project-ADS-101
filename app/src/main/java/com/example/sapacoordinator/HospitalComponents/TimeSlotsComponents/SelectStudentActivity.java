@@ -54,6 +54,7 @@ public class SelectStudentActivity extends AppCompatActivity implements BookingS
     private int selectedCount = 0;
     private String selectedTimeSlotText = "";
     private String getSelectedDateSlotText="";
+    private double price;
 
 
     @SuppressLint("MissingInflatedId")
@@ -77,6 +78,7 @@ public class SelectStudentActivity extends AppCompatActivity implements BookingS
         selectedTimeSlotText = getIntent().getStringExtra("time_slot");
         getSelectedDateSlotText = getIntent().getStringExtra("training_date");
         currentBookedCount = getIntent().getIntExtra("booked_count", 0);
+        price = getIntent().getDoubleExtra("price_per_student", 0.0);
 
         availableSlots = maxCapacity - currentBookedCount;
 
@@ -275,7 +277,7 @@ public class SelectStudentActivity extends AppCompatActivity implements BookingS
         paymentIntent.putExtra("max_capacity", maxCapacity);
         paymentIntent.putExtra("current_booked_count", currentBookedCount);
         paymentIntent.putExtra("available_slots", availableSlots);
-        paymentIntent.putExtra("price_per_student", 50.0); // Set your price here
+        paymentIntent.putExtra("price_per_student", price);
 
         // Optional: Pass additional booking details for display
         paymentIntent.putExtra("training_date", getSelectedDateSlotText);

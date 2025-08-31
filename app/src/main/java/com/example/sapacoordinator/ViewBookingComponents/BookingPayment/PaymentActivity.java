@@ -160,15 +160,12 @@ public class PaymentActivity extends AppCompatActivity {
         btnConfirmPayment.setEnabled(false);
         btnConfirmPayment.setText("Processing Payment...");
 
-        // Simulate payment processing (replace with actual payment logic)
         new android.os.Handler().postDelayed(() -> {
-            // After successful payment processing, submit the booking
             submitBookingToAPI();
         }, 2000);
     }
 
     private void submitBookingToAPI() {
-        // Extract student IDs from selected students
         List<Integer> studentIds = new ArrayList<>();
         for (Parcelable parcelable : selectedStudents) {
             if (parcelable instanceof Student) {
@@ -185,7 +182,6 @@ public class PaymentActivity extends AppCompatActivity {
         call.enqueue(new Callback<>() {
             @Override
             public void onResponse(@NonNull Call<GenericResponse> call, @NonNull Response<GenericResponse> response) {
-                // Reset button state
                 btnConfirmPayment.setEnabled(true);
                 btnConfirmPayment.setText("Confirm Payment");
 

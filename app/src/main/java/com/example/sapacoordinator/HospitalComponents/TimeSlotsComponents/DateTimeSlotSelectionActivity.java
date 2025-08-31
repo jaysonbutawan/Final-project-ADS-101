@@ -30,6 +30,7 @@ public class DateTimeSlotSelectionActivity extends AppCompatActivity
     private String selectedTimeSlotText = "";
     private String departmentmentName, hospitalName;
     private TextView tvdepartmentName, tvHospitalName;
+    private double price;
 
 
     @SuppressLint("MissingInflatedId")
@@ -49,6 +50,7 @@ public class DateTimeSlotSelectionActivity extends AppCompatActivity
         hospitalId =getIntent().getIntExtra("hospital_id",-1);
         departmentmentName = getIntent().getStringExtra("department_name");
         hospitalName = getIntent().getStringExtra("hospital_name");
+        price = getIntent().getDoubleExtra("price_per_student", 0.0);
 
          tvdepartmentName = findViewById(R.id.tvDepartment);
          tvHospitalName = findViewById(R.id.tvHospitalName);
@@ -181,6 +183,7 @@ public class DateTimeSlotSelectionActivity extends AppCompatActivity
         intent.putExtra("booked_count",selectedBookedCount);
         intent.putExtra("training_date", selectedTrainingDate);
         intent.putExtra("time_slot", selectedTimeSlotText);
+        intent.putExtra("price_per_student", price);
         Log.d("BookingData", "Proceeding with: school_id=" + schoolId +
                 ", department_id=" + departmentId +
                 ", date_slot_id=" + selectedDateSlotId +

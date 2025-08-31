@@ -21,6 +21,7 @@ public class DepartmentAdapter extends RecyclerView.Adapter<DepartmentAdapter.Vi
     private final Context context;
     private final int schoolId;
     private final int hospitalId;
+    private  double price;
     private int selectedPosition = -1; // Track selected position
 
     @SuppressLint("NotifyDataSetChanged")
@@ -45,6 +46,8 @@ public class DepartmentAdapter extends RecyclerView.Adapter<DepartmentAdapter.Vi
         holder.tvDepartmentName.setText(department.getSection_name());
         holder.tvPrice.setText(String.valueOf(department.getPrice_per_student()));
         holder.tvHospitalName.setText(department.getHospital_name());
+        price = department.getPrice_per_student();
+
 
         // Set background color based on selection
         if (selectedPosition == position) {
@@ -58,7 +61,6 @@ public class DepartmentAdapter extends RecyclerView.Adapter<DepartmentAdapter.Vi
             int previousPosition = selectedPosition;
             selectedPosition = position;
 
-            // Notify adapter to update colors
             if (previousPosition != -1) {
                 notifyItemChanged(previousPosition);
             }
@@ -70,6 +72,7 @@ public class DepartmentAdapter extends RecyclerView.Adapter<DepartmentAdapter.Vi
             intent.putExtra("department_name", department.getSection_name());
             intent.putExtra("department_id", department.getDepartment_id());
             intent.putExtra("school_id", schoolId);
+            intent.putExtra("price_per_student", price);
             context.startActivity(intent);
         });
     }
@@ -88,7 +91,7 @@ public class DepartmentAdapter extends RecyclerView.Adapter<DepartmentAdapter.Vi
             tvDepartmentName = itemView.findViewById(R.id.tvSectionName);
             tvPrice = itemView.findViewById(R.id.tvPrice);
             tvHospitalName = itemView.findViewById(R.id.tvHospitalName);
-            cardView = (CardView) itemView; // Get reference to the CardView
+            cardView = (CardView) itemView;
         }
     }
 }
