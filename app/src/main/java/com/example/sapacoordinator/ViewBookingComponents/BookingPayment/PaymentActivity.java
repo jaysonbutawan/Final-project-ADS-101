@@ -146,7 +146,7 @@ public class PaymentActivity extends AppCompatActivity {
                         "Total Amount: $%.2f\nStudents: %d\n\nProceed with payment?",
                         totalAmount, selectedStudents.size()))
                 .setConfirmText("Pay Now")
-                .setCancelText("Cancel")
+                .setCancelText("Pay Later")
                 .setConfirmClickListener(dialog -> {
                     dialog.dismissWithAnimation();
                     processPayment();
@@ -177,51 +177,21 @@ public class PaymentActivity extends AppCompatActivity {
             }
         }
 
-        // ✅ Enhanced debugging before API call
-        Log.d("PaymentActivity", "=== SUBMITTING BOOKING TO API ===");
-        Log.d("PaymentActivity", "🏥 Hospital ID being sent: " + hospitalId);
-        Log.d("PaymentActivity", "🏫 School ID: " + schoolId);
-        Log.d("PaymentActivity", "🏢 Department ID: " + departmentId);
-        Log.d("PaymentActivity", "📅 Date Slot ID: " + dateSlotId);
-        Log.d("PaymentActivity", "⏰ Time Slot ID: " + timeSlotId);
-        Log.d("PaymentActivity", "👥 Student IDs: " + studentIds);
-
         ApiInterface api = ApiClient.getClient().create(ApiInterface.class);
         String studentIdsJson = new Gson().toJson(studentIds);
         Call<GenericResponse> call = api.bookAppointment(schoolId, hospitalId, departmentId, dateSlotId, timeSlotId, studentIdsJson);
 
-        // ✅ Log the exact parameters being sent to API
-        Log.d("PaymentActivity", "API call parameters:");
-        Log.d("PaymentActivity", "  schoolId: " + schoolId);
-        Log.d("PaymentActivity", "  hospitalId: " + hospitalId);
-        Log.d("PaymentActivity", "  departmentId: " + departmentId);
-        Log.d("PaymentActivity", "  dateSlotId: " + dateSlotId);
-        Log.d("PaymentActivity", "  timeSlotId: " + timeSlotId);
-        Log.d("PaymentActivity", "  studentIdsJson: " + studentIdsJson);
 
-        call.enqueue(new Callback<GenericResponse>() {
+        call.enqueue(new Callback<>() {
             @Override
             public void onResponse(@NonNull Call<GenericResponse> call, @NonNull Response<GenericResponse> response) {
                 // Reset button state
                 btnConfirmPayment.setEnabled(true);
                 btnConfirmPayment.setText("Confirm Payment");
 
-                // ✅ Log the response details
-                Log.d("PaymentActivity", "=== API RESPONSE RECEIVED ===");
-                Log.d("PaymentActivity", "Response code: " + response.code());
-                Log.d("PaymentActivity", "Response message: " + response.message());
-
                 if (response.isSuccessful() && response.body() != null) {
                     GenericResponse genericResponse = response.body();
 
-                    // Add debug logging to see the actual response
-                    Log.d("PaymentActivity", "Response body:");
-                    Log.d("PaymentActivity", "Raw response: " + new Gson().toJson(genericResponse));
-                    Log.d("PaymentActivity", "Status: " + response.code());
-                    Log.d("PaymentActivity", "Message: " + genericResponse.getMessage());
-                    Log.d("PaymentActivity", "isSuccess(): " + genericResponse.isSuccess());
-
-                    // Check for success using multiple conditions
                     boolean isSuccessful = genericResponse.isSuccess() ||
                                          (genericResponse.getMessage() != null &&
                                           genericResponse.getMessage().toLowerCase().contains("success")) ||
@@ -229,17 +199,11 @@ public class PaymentActivity extends AppCompatActivity {
                                           genericResponse.getMessage().toLowerCase().contains("booked"));
 
                     if (isSuccessful) {
-                        Log.d("PaymentActivity", "✅ Booking successful for all students");
-                        Log.d("PaymentActivity", "Response: " + genericResponse.getMessage());
                         showPaymentSuccessDialog();
                     } else {
-                        // Booking failed
-                        Log.e("PaymentActivity", "❌ Booking failed - Status check failed");
-                        Log.e("PaymentActivity", "Message received: " + genericResponse.getMessage());
                         handleBookingError("Booking failed: " + genericResponse.getMessage());
                     }
                 } else {
-                    Log.e("PaymentActivity", "❌ API response failed: " + response.code() + " - " + response.message());
                     handleBookingError("API response failed: " + response.code() + " - " + response.message());
                 }
             }

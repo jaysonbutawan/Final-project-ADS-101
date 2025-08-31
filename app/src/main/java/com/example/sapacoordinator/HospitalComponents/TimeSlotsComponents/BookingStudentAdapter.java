@@ -9,6 +9,8 @@ import android.widget.CheckBox;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.sapacoordinator.R;
 import com.example.sapacoordinator.SchoolComponents.StudentsComponents.Student;
@@ -68,6 +70,12 @@ public class BookingStudentAdapter extends RecyclerView.Adapter<BookingStudentAd
         boolean isSelected = selectedStudentIds.contains(studentId);
         holder.cbSelect.setChecked(isSelected);
 
+        // Set background color based on selection
+        if (isSelected) {
+            holder.cardView.setCardBackgroundColor(ContextCompat.getColor(context, R.color.yellow));
+        } else {
+            holder.cardView.setCardBackgroundColor(ContextCompat.getColor(context, R.color.white));
+        }
 
         holder.cbSelect.setOnCheckedChangeListener(null);
         holder.cbSelect.setOnCheckedChangeListener((buttonView, isChecked) -> {
@@ -85,6 +93,13 @@ public class BookingStudentAdapter extends RecyclerView.Adapter<BookingStudentAd
                 selectedStudentIds.remove(studentId);
             }
 
+            // Update card background color immediately
+            if (isChecked) {
+                holder.cardView.setCardBackgroundColor(ContextCompat.getColor(context, R.color.yellow));
+            } else {
+                holder.cardView.setCardBackgroundColor(ContextCompat.getColor(context, R.color.white));
+            }
+
             if (listener != null) {
                 listener.onStudentSelected(student, isChecked);
             }
@@ -100,6 +115,7 @@ public class BookingStudentAdapter extends RecyclerView.Adapter<BookingStudentAd
     public static class BookingStudentViewHolder extends RecyclerView.ViewHolder {
         TextView tvStudentName, tvStudentCode, tvGradeAge;
         CheckBox cbSelect;
+        CardView cardView;
 
         public BookingStudentViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -107,6 +123,7 @@ public class BookingStudentAdapter extends RecyclerView.Adapter<BookingStudentAd
             tvStudentCode = itemView.findViewById(R.id.tvStudentCode);
             tvGradeAge = itemView.findViewById(R.id.tvGradeAge);
             cbSelect = itemView.findViewById(R.id.cbSelect);
+            cardView = (CardView) itemView;
         }
     }
 }

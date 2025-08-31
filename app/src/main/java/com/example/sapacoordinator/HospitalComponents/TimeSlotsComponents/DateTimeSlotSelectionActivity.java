@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -27,8 +28,11 @@ public class DateTimeSlotSelectionActivity extends AppCompatActivity
     private int hospitalId =-1;
     private String selectedTrainingDate = "";
     private String selectedTimeSlotText = "";
+    private String departmentmentName, hospitalName;
+    private TextView tvdepartmentName, tvHospitalName;
 
 
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -43,22 +47,21 @@ public class DateTimeSlotSelectionActivity extends AppCompatActivity
         departmentId = getIntent().getIntExtra("department_id", -1);
         schoolId = getIntent().getIntExtra("school_id", -1);
         hospitalId =getIntent().getIntExtra("hospital_id",-1);
+        departmentmentName = getIntent().getStringExtra("department_name");
+        hospitalName = getIntent().getStringExtra("hospital_name");
 
-        // ✅ Log the received values immediately
-        Log.d("DEBUG_", "DateTimeSlotSelection onCreate:");
-        Log.d("DEBUG_", "  Received departmentId: " + departmentId);
-        Log.d("DEBUG_", "  Received schoolId: " + schoolId);
-        Log.d("DEBUG_", "  Received hospitalId----------------------------------: " + hospitalId);
+         tvdepartmentName = findViewById(R.id.tvDepartment);
+         tvHospitalName = findViewById(R.id.tvHospitalName);
 
-        // Initialize button
+         tvdepartmentName.setText(departmentmentName);
+         tvHospitalName.setText(hospitalName);
+
         btnBookAppointment = findViewById(R.id.btnBookAppointment);
-        btnBookAppointment.setEnabled(false); // Disabled until both date and time are selected
+        btnBookAppointment.setEnabled(false);
 
-        // ✅ Update button state after getting intent data
         updateBookButtonState();
 
         btnBookAppointment.setOnClickListener(v -> {
-            // Check specific missing selections and provide detailed feedback
             if (selectedDateSlotId == -1 && selectedTimeSlotId == -1) {
                 Toast.makeText(this, "Please select a date and time slot first", Toast.LENGTH_LONG).show();
                 return;

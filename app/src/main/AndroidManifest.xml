@@ -17,6 +17,9 @@
         android:theme="@style/Theme.SapaCoordinator"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".ViewBookingComponents.BookingPayment.FinalPayment"
+            android:exported="false" />
+        <activity
             android:name=".ViewBookingComponents.BookingPayment.PaymentActivity"
             android:exported="false" />
         <activity
