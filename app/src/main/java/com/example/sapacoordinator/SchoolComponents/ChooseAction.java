@@ -12,6 +12,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -131,6 +132,17 @@ public class ChooseAction extends AppCompatActivity {
         fetchBookingCount();
         fetchStudentCount();
 
+        // Handle back navigation using OnBackPressedDispatcher
+        OnBackPressedCallback callback = new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                Intent intent = new Intent(ChooseAction.this, activity_register_school.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+                finish();
+            }
+        };
+        getOnBackPressedDispatcher().addCallback(this, callback);
     }
 
             private void fetchStudentCount() {
@@ -177,6 +189,4 @@ public class ChooseAction extends AppCompatActivity {
             }
         });
     }
-
-
 }

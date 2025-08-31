@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.sapacoordinator.R;
 import java.util.ArrayList;
 import java.util.List;
+import cn.pedant.SweetAlert.SweetAlertDialog;
 
 public class TimeSlotAdapter extends RecyclerView.Adapter<TimeSlotAdapter.ViewHolder> {
     private final List<TimeSlotModel> timeSlotList;
@@ -50,7 +51,7 @@ public class TimeSlotAdapter extends RecyclerView.Adapter<TimeSlotAdapter.ViewHo
         // Show capacity if available
         if (timeSlot.getCapacity() > 0) {
             holder.tvCapacity.setVisibility(View.VISIBLE);
-            holder.tvCapacity.setText("Slot Available " + timeSlot.getBooked_count()+ "/" + timeSlot.getCapacity());
+            holder.tvCapacity.setText("Slot Available " + timeSlot.getBooked_count() + "/" + timeSlot.getCapacity());
         } else {
             holder.tvCapacity.setVisibility(View.GONE);
         }
@@ -62,19 +63,32 @@ public class TimeSlotAdapter extends RecyclerView.Adapter<TimeSlotAdapter.ViewHo
             holder.itemView.setBackgroundColor(Color.TRANSPARENT);
         }
 
-        // Click listener
-        holder.itemView.setOnClickListener(v -> {
-            int previousPosition = selectedPosition;
-            selectedPosition = position;
+        // 🔥 Disable fully booked slots
+        if (timeSlot.getBooked_count() >= timeSlot.getCapacity()) {
+            holder.itemView.setAlpha(0.5f); // Apply blur effect
+            holder.itemView.setOnClickListener(v -> {
+                // Show SweetAlertDialog for fully booked slots
+                new SweetAlertDialog(holder.itemView.getContext(), SweetAlertDialog.WARNING_TYPE)
+                    .setTitleText("Fully Booked")
+                    .setContentText("This time slot is already fully booked.")
+                    .setConfirmText("OK")
+                    .show();
+            });
+        } else {
+            holder.itemView.setAlpha(1.0f); // Reset blur effect
+            holder.itemView.setOnClickListener(v -> {
+                int previousPosition = selectedPosition;
+                selectedPosition = position;
 
-            // Refresh both old and new selected items
-            notifyItemChanged(previousPosition);
-            notifyItemChanged(selectedPosition);
+                // Refresh both old and new selected items
+                notifyItemChanged(previousPosition);
+                notifyItemChanged(selectedPosition);
 
-            if (listener != null) {
-                listener.onTimeSlotClick(timeSlot.getTime_slot_id());
-            }
-        });
+                if (listener != null) {
+                    listener.onTimeSlotClick(timeSlot.getTime_slot_id());
+                }
+            });
+        }
     }
 
 

@@ -1,6 +1,7 @@
 package com.example.sapacoordinator.ViewBookingComponents.BookingPayment;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.util.Log;
@@ -20,6 +21,7 @@ import com.example.sapacoordinator.DatabaseConnector.ApiClient;
 import com.example.sapacoordinator.DatabaseConnector.ApiInterface;
 import com.example.sapacoordinator.DatabaseConnector.GenericResponse;
 import com.example.sapacoordinator.R;
+import com.example.sapacoordinator.SchoolComponents.ChooseAction;
 import com.example.sapacoordinator.SchoolComponents.StudentsComponents.Student;
 import com.google.gson.Gson;
 
@@ -149,23 +151,26 @@ public class PaymentActivity extends AppCompatActivity {
                 .setCancelText("Pay Later")
                 .setConfirmClickListener(dialog -> {
                     dialog.dismissWithAnimation();
-                    processPayment();
+                    processPayment(true); // Pay Now
                 })
-                .setCancelClickListener(SweetAlertDialog::dismissWithAnimation)
+                .setCancelClickListener(dialog -> {
+                    dialog.dismissWithAnimation();
+                    processPayment(false); // Pay Later
+                })
                 .show();
     }
 
-    private void processPayment() {
+    private void processPayment(boolean isPayNow) {
         // Show loading
         btnConfirmPayment.setEnabled(false);
         btnConfirmPayment.setText("Processing Payment...");
 
         new android.os.Handler().postDelayed(() -> {
-            submitBookingToAPI();
+            submitBookingToAPI(isPayNow);
         }, 2000);
     }
 
-    private void submitBookingToAPI() {
+    private void submitBookingToAPI(boolean isPayNow) {
         List<Integer> studentIds = new ArrayList<>();
         for (Parcelable parcelable : selectedStudents) {
             if (parcelable instanceof Student) {
@@ -177,7 +182,6 @@ public class PaymentActivity extends AppCompatActivity {
         ApiInterface api = ApiClient.getClient().create(ApiInterface.class);
         String studentIdsJson = new Gson().toJson(studentIds);
         Call<GenericResponse> call = api.bookAppointment(schoolId, hospitalId, departmentId, dateSlotId, timeSlotId, studentIdsJson);
-
 
         call.enqueue(new Callback<>() {
             @Override
@@ -195,25 +199,44 @@ public class PaymentActivity extends AppCompatActivity {
                                           genericResponse.getMessage().toLowerCase().contains("booked"));
 
                     if (isSuccessful) {
-                        showPaymentSuccessDialog();
+                        if (isPayNow) {
+                            navigateToFinalPayment();
+                        } else {
+                            navigateToChooseAction();
+                        }
                     } else {
                         handleBookingError("Booking failed: " + genericResponse.getMessage());
                     }
                 } else {
-                    handleBookingError("API response failed: " + response.code() + " - " + response.message());
+                    handleBookingError("Booking failed: Unexpected response");
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call<GenericResponse> call, @NonNull Throwable t) {
-                // Reset button state
                 btnConfirmPayment.setEnabled(true);
                 btnConfirmPayment.setText("Confirm Payment");
-
-                Log.e("PaymentActivity", "❌ Network error during booking", t);
-                handleBookingError("Network error: " + t.getMessage());
+                handleBookingError("Booking failed: " + t.getMessage());
             }
         });
+    }
+
+    private void navigateToFinalPayment() {
+        Intent intent = new Intent(PaymentActivity.this, FinalPayment.class);
+        intent.putExtra("school_id", schoolId);
+        intent.putExtra("hospital_id", hospitalId);
+        intent.putExtra("department_id", departmentId);
+        intent.putExtra("date_slot_id", dateSlotId);
+        intent.putExtra("time_slot_id", timeSlotId);
+        startActivity(intent);
+        finish();
+    }
+
+    private void navigateToChooseAction() {
+        Intent intent = new Intent(PaymentActivity.this, ChooseAction.class);
+        intent.putExtra("school_id", schoolId);
+        startActivity(intent);
+        finish();
     }
 
     private void handleBookingError(String errorMessage) {
@@ -245,7 +268,7 @@ public class PaymentActivity extends AppCompatActivity {
                 .setConfirmText("Done")
                 .setConfirmClickListener(dialog -> {
                     dialog.dismissWithAnimation();
-                    finish(); // Close activity
+                    finish();
                 })
                 .show();
     }
