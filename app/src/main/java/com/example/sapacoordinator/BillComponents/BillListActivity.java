@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sapacoordinator.DatabaseConnector.ApiClient;
 import com.example.sapacoordinator.DatabaseConnector.ApiInterface;
+import com.example.sapacoordinator.DatabaseConnector.GenericResponse;
 import com.example.sapacoordinator.R;
 import com.example.sapacoordinator.SchoolComponents.ChooseAction;
 
@@ -155,12 +156,12 @@ public class BillListActivity extends AppCompatActivity implements BillAdapter.O
         loadingDialog.show();
 
         ApiInterface apiInterface = ApiClient.getClient().create(ApiInterface.class);
-        Call<com.example.sapacoordinator.DatabaseConnector.GenericResponse> call = apiInterface.payBill(bill.getBillId());
+        Call<GenericResponse> call = apiInterface.payBill(bill.getBillId());
 
         call.enqueue(new Callback<>() {
             @Override
-            public void onResponse(@NonNull Call<com.example.sapacoordinator.DatabaseConnector.GenericResponse> call,
-                                   @NonNull Response<com.example.sapacoordinator.DatabaseConnector.GenericResponse> response) {
+            public void onResponse(@NonNull Call<GenericResponse> call,
+                                   @NonNull Response<GenericResponse> response) {
                 loadingDialog.dismissWithAnimation();
 
                 if (response.isSuccessful() && response.body() != null) {

@@ -54,7 +54,7 @@ public class PaymentActivity extends AppCompatActivity {
     private int dateSlotId;
     private int timeSlotId;
     private String trainingDate, trainingTime;
-    private double pricePerStudent = 50.0; // Default price, can be passed from intent
+    private double pricePerStudent = 0; // Default price, can be passed from intent
 
     @SuppressLint("MissingInflatedId")
     @Override

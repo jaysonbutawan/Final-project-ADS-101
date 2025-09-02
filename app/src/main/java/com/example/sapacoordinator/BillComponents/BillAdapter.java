@@ -15,6 +15,7 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.sapacoordinator.R;
+import com.example.sapacoordinator.SchoolComponents.ChooseAction;
 import com.example.sapacoordinator.ViewBookingComponents.BookingPayment.FinalPayment;
 
 import java.util.List;
@@ -104,6 +105,17 @@ public class BillAdapter extends RecyclerView.Adapter<BillAdapter.BillViewHolder
         intent.putExtra("bill_reference", bill.getBillReference());
         intent.putExtra("total_amount", bill.getTotalAmount());
         intent.putExtra("school_id", bill.getSchoolId());
+
+        // Pass school data if available from context (ChooseAction activity)
+        if (context instanceof ChooseAction) {
+            ChooseAction chooseAction = (ChooseAction) context;
+            // We need to get school data from the activity
+            Intent currentIntent = chooseAction.getIntent();
+            intent.putExtra("school_name", currentIntent.getStringExtra("school_name"));
+            intent.putExtra("school_address", currentIntent.getStringExtra("school_address"));
+            intent.putExtra("school_contact", currentIntent.getStringExtra("school_contact"));
+        }
+
         context.startActivity(intent);
     }
 

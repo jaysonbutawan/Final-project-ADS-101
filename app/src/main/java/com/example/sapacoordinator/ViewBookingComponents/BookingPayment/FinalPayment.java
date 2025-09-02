@@ -173,7 +173,10 @@ public class FinalPayment extends AppCompatActivity {
 
     private void navigateBackToChooseAction() {
         Intent intent = new Intent(FinalPayment.this, ChooseAction.class);
-        intent.putExtra("school_id", schoolId);;
+        intent.putExtra("school_id", schoolId);
+        intent.putExtra("school_name", schoolName);
+        intent.putExtra("school_address", schoolAddress);
+        intent.putExtra("school_contact", schoolContact);
         startActivity(intent);
         finish();
     }
