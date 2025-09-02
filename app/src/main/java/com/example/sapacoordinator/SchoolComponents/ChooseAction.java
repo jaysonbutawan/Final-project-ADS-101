@@ -67,11 +67,6 @@ public class ChooseAction extends AppCompatActivity {
         schoolContact = receivedIntent.getStringExtra("school_contact");
         schoolId = receivedIntent.getIntExtra("school_id", -1);
 
-        // ✅ Add debug logging to track school_id
-        Log.d("DEBUG_", "Received school_id: " + schoolId);
-        Log.d("DEBUG_", "Received school_name: " + schoolName);
-
-        // Bind TextViews
         TextView tvSchoolName = findViewById(R.id.tvSchoolName);
         TextView tvAddress = findViewById(R.id.tvAddress);
         TextView tvContact = findViewById(R.id.tvContact);
@@ -90,7 +85,6 @@ public class ChooseAction extends AppCompatActivity {
             intent.putExtra("school_name", schoolName);
             intent.putExtra("school_address", schoolAddress);
             intent.putExtra("school_contact", schoolContact);
-            Log.d("DEBUG_", "Navigating to StudentsRegistration with school_id: " + schoolId);
             startActivity(intent);
         });
 
@@ -154,6 +148,7 @@ public class ChooseAction extends AppCompatActivity {
                     public void onResponse(@NonNull Call<GenericResponse> call, @NonNull Response<GenericResponse> response) {
                         if (response.isSuccessful() && response.body() != null) {
                             tvStudentsCount.setText(String.valueOf(response.body().getStudent_count()));
+                            Log.d("COUNT_DEBUG", "Student count response: " + response.body().getStudent_count());
                         } else {
                             tvStudentsCount.setText("0");
                         }
