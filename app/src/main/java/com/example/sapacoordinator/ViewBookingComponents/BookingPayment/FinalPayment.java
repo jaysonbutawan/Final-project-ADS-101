@@ -37,6 +37,7 @@ public class FinalPayment extends AppCompatActivity {
     private String schoolName;
     private String schoolAddress;
     private String schoolContact;
+    private Button btnBack;
 
     // UI Components
     private TextView tvTotalAmount;
@@ -63,6 +64,7 @@ public class FinalPayment extends AppCompatActivity {
 
         // Setup back navigation
         setupBackNavigation();
+
     }
 
     private void getBillDataFromIntent() {
@@ -82,6 +84,7 @@ public class FinalPayment extends AppCompatActivity {
     private void initializeViews() {
         tvTotalAmount = findViewById(R.id.totalAmount);
         btnPayNow = findViewById(R.id.btnPayNow);
+        btnBack = findViewById(R.id.btnBack);
         // Set the total amount
         tvTotalAmount.setText(String.format("$%.2f", totalAmount));
 
@@ -98,6 +101,9 @@ public class FinalPayment extends AppCompatActivity {
             showPaymentConfirmation();
         });
 
+        btnBack.setOnClickListener(v -> {
+            navigateBackToChooseAction();
+        });
     }
 
     private void showPaymentConfirmation() {
@@ -177,6 +183,8 @@ public class FinalPayment extends AppCompatActivity {
         intent.putExtra("school_name", schoolName);
         intent.putExtra("school_address", schoolAddress);
         intent.putExtra("school_contact", schoolContact);
+        // Add flags to clear the current task and bring ChooseAction to front
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         startActivity(intent);
         finish();
     }
@@ -190,6 +198,4 @@ public class FinalPayment extends AppCompatActivity {
         };
         getOnBackPressedDispatcher().addCallback(this, callback);
     }
-
-
 }

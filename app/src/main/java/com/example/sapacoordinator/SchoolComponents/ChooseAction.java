@@ -248,7 +248,7 @@ public class ChooseAction extends AppCompatActivity implements BillAdapter.OnBil
         intent.putExtra("bill_id", bill.getBillId());
         intent.putExtra("bill_reference", bill.getBillReference());
         intent.putExtra("total_amount", bill.getTotalAmount());
-        intent.putExtra("school_id", bill.getSchoolId());
+        intent.putExtra("school_id", schoolId);
         intent.putExtra("school_name", schoolName);
         intent.putExtra("school_address", schoolAddress);
         intent.putExtra("school_contact", schoolContact);
@@ -299,5 +299,81 @@ public class ChooseAction extends AppCompatActivity implements BillAdapter.OnBil
                 Toast.makeText(ChooseAction.this, "Failed to load booking count", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+
+        // Update school data from new intent FIRST
+        updateSchoolDataFromIntent();
+
+        // Then refresh all data
+        refreshAllData();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // Only refresh data if school data is properly set
+        if (schoolId != -1 && schoolName != null) {
+            refreshAllData();
+        }
+    }
+
+    private void updateSchoolDataFromIntent() {
+        Intent receivedIntent = getIntent();
+        String newSchoolName = receivedIntent.getStringExtra("school_name");
+        String newSchoolAddress = receivedIntent.getStringExtra("school_address");
+        String newSchoolContact = receivedIntent.getStringExtra("school_contact");
+        int newSchoolId = receivedIntent.getIntExtra("school_id", -1);
+
+        // Only update if we have valid data
+        if (newSchoolId != -1) {
+            schoolId = newSchoolId;
+        }
+        if (newSchoolName != null) {
+            schoolName = newSchoolName;
+        }
+        if (newSchoolAddress != null) {
+            schoolAddress = newSchoolAddress;
+        }
+        if (newSchoolContact != null) {
+            schoolContact = newSchoolContact;
+        }
+
+        // Update UI with fresh data
+        TextView tvSchoolName = findViewById(R.id.tvSchoolName);
+        TextView tvAddress = findViewById(R.id.tvAddress);
+        TextView tvContact = findViewById(R.id.tvContact);
+
+        if (schoolName != null) {
+            tvSchoolName.setText(schoolName);
+        }
+        if (schoolAddress != null) {
+            tvAddress.setText(schoolAddress);
+        }
+        if (schoolContact != null) {
+            tvContact.setText(schoolContact);
+        }
+
+        Log.d("ChooseAction", "Updated school data - ID: " + schoolId + ", Name: " + schoolName);
+    }
+
+    private void refreshAllData() {
+        // Only refresh if we have valid school ID
+        if (schoolId == -1) {
+            Log.e("ChooseAction", "Cannot refresh data - invalid school ID");
+            return;
+        }
+
+        Log.d("ChooseAction", "Refreshing data for school ID: " + schoolId);
+
+        // Refresh all counts and data
+        fetchBookingCount();
+        fetchStudentCount();
+        loadBills();
     }
 }

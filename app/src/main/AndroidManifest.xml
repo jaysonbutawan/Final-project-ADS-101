@@ -44,7 +44,8 @@
             android:exported="false" />
         <activity
             android:name=".SchoolComponents.ChooseAction"
-            android:exported="false" />
+            android:exported="false"
+            android:launchMode="singleTop" />
         <activity
             android:name=".MainActivity"
             android:exported="true" />
