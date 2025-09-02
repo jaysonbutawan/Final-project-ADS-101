@@ -251,25 +251,4 @@ public class PaymentActivity extends AppCompatActivity {
                 .show();
     }
 
-    private void showError(String message) {
-        new SweetAlertDialog(this, SweetAlertDialog.ERROR_TYPE)
-                .setTitleText("Error")
-                .setContentText(message)
-                .setConfirmText("OK")
-                .setConfirmClickListener(SweetAlertDialog::dismissWithAnimation)
-                .show();
-    }
-
-    private void showPaymentSuccessDialog() {
-        new SweetAlertDialog(this, SweetAlertDialog.SUCCESS_TYPE)
-                .setTitleText("Payment Successful!")
-                .setContentText("Your payment has been processed successfully. " +
-                        "The booking is now confirmed!")
-                .setConfirmText("Done")
-                .setConfirmClickListener(dialog -> {
-                    dialog.dismissWithAnimation();
-                    finish();
-                })
-                .show();
-    }
 }

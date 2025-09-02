@@ -169,5 +169,15 @@ public interface ApiInterface {
     @POST("cancel_appointment.php")
     Call<GenericResponse> cancelAppointment(@Body CancelRequest request);
 
+    // Bill-related endpoints
+    @GET("get_bills.php")
+    Call<List<com.example.sapacoordinator.BillComponents.Bill>> getBillsBySchool(@Query("school_id") int schoolId);
+
+    @FormUrlEncoded
+    @POST("pay_bill.php")
+    Call<GenericResponse> payBill(@Field("bill_id") int billId);
+
+    @GET("get_bill_details.php")
+    Call<com.example.sapacoordinator.BillComponents.Bill> getBillDetails(@Query("bill_id") int billId);
 
 }

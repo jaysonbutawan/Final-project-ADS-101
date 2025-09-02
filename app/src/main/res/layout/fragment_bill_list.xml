@@ -1,21 +1,56 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    >
+    android:orientation="vertical"
+    android:padding="8dp">
 
+    <!-- Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingBottom="8dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/bills_title"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/colorPrimary"/>
+
+        <TextView
+            android:id="@+id/tvViewAll"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="View All"
+            android:textSize="14sp"
+            android:textColor="@color/colorPrimary"
+            android:background="?android:attr/selectableItemBackground"
+            android:padding="8dp"/>
+    </LinearLayout>
+
+    <!-- Empty state message -->
     <TextView
         android:id="@+id/tvEmptyMessage"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/no_schools"
-        android:textSize="16sp"
+        android:layout_height="match_parent"
+        android:text="@string/no_bills_found"
+        android:textSize="14sp"
+        android:textColor="@android:color/darker_gray"
         android:gravity="center"
         android:visibility="gone"
-        android:layout_marginTop="20dp"/>
+        android:drawableTop="@android:drawable/ic_menu_search"
+        android:drawablePadding="16dp"/>
 
+    <!-- Bills RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvBills"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="8dp"/>
-</FrameLayout>
+        android:clipToPadding="false"/>
+
+</LinearLayout>

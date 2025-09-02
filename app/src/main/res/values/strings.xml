@@ -14,11 +14,17 @@
     <string name="notifications">Notifications</string>
     <string name="profile">Profile</string>
     <string name="home">Home</string>
-    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="address_information">Address Information</string>
     <string name="school_address">School Address *</string>
     <string name="enter_school_address">Enter school address</string>
+
+    <string name="pay_now">Pay Now</string>
+    <string name="view_receipt">View Receipt</string>
+    <string name="no_bills_found">No bills found for this school</string>
+    <string name="bills_title">School Bills</string>
+    <string name="bills_subtitle">Manage your school\'s billing and payments</string>
+
     <string name="contact_information">Contact Information</string>
     <string name="phone_number">Phone Number</string>
     <string name="_09357440014">09357440014</string>
@@ -41,7 +47,6 @@
     <string name="select_a_hospital_to_manage_bookings_and_bills">Select a hospital to manage bookings and bills</string>
     <string name="view_amp_filter_bookings"><![CDATA[View & Filter Bookings]]></string>
 
-    <!-- Payment Student Adapter Strings -->
     <string name="student_name_format">Student: %1$s</string>
     <string name="student_id_format">ID: %1$s</string>
     <string name="student_email_format">Email: %1$s</string>

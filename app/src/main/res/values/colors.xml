@@ -12,4 +12,13 @@
     <color name="primary_light">#C5CAE9</color>
     <color name="text_secondary">#757575</color>
     <color name="yellow">#FFDD55</color>
+
+    <!-- Bill Status Colors -->
+    <color name="paid_status">#4CAF50</color>
+    <color name="unpaid_status">#F44336</color>
+    <color name="paid_amount">#2E7D32</color>
+    <color name="unpaid_amount">#D32F2F</color>
+    <color name="card_paid_bg">#E8F5E8</color>
+    <color name="card_unpaid_bg">#FFEBEE</color>
+    <color name="green_500">#4CAF50</color>
 </resources>
