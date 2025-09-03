@@ -41,19 +41,15 @@ public class DateAdapter extends RecyclerView.Adapter<DateAdapter.ViewHolder> {
         DateSlot dateSlot = dateList.get(position);
 
         if (dateSlot != null && dateSlot.getSlotDate() != null) {
-            Log.d("DEBUG", "Binding date at position " + position + ": " + dateSlot.getSlotDate());
-
             holder.tvDate.setText(dateSlot.getSlotDate());
         } else if(dateSlot==null) {
             holder.tvDate.setText("No Date"); // fallback
         }
         holder.itemView.setBackgroundColor(
                 position == selectedPosition ? Color.parseColor("#FFDD55") : Color.TRANSPARENT
-        );//#FFDD55
+        );
 
         holder.itemView.setOnClickListener(v -> {
-            Log.d("DEBUG", "Clicked on date ID: " + dateSlot.getSlotDateId() + " at position " + position);
-
             if (listener != null) {
                 assert dateSlot != null;
                 listener.onDateSelected(dateSlot.getSlotDateId());
@@ -63,14 +59,14 @@ public class DateAdapter extends RecyclerView.Adapter<DateAdapter.ViewHolder> {
             notifyItemChanged(selectedPosition);
         });
 
-        // 👇 Auto select first date when list loads
         if (position == 0 && selectedPosition == RecyclerView.NO_POSITION) {
             holder.itemView.performClick();
         }
     }
+    @SuppressLint("NotifyDataSetChanged")
     public void setDefaultSelection() {
         if (!dateList.isEmpty()) {
-            int firstDateId = dateList.get(0).getSlotDateId(); // assuming getter
+            int firstDateId = dateList.get(0).getSlotDateId();
             selectedPosition = 0;
             notifyDataSetChanged();
             if (listener != null) {
@@ -94,7 +90,6 @@ public class DateAdapter extends RecyclerView.Adapter<DateAdapter.ViewHolder> {
         }
     }
 
-    // Click listener interface
     public interface OnDateClickListener {
         void onDateSelected(int dateId);
     }

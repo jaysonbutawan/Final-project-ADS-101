@@ -7,14 +7,6 @@ public class DateSlot {
     private int slotDateId;
     @SerializedName("slot_date")
     private String slotDate;
-    @SerializedName("department_id")
-    private int departmentId;
-
-    public DateSlot(int slotDateId, String slotDate, int departmentId) {
-        this.slotDateId = slotDateId;
-        this.slotDate = slotDate;
-        this.departmentId = departmentId;
-    }
 
     public int getSlotDateId() {
         return slotDateId;
@@ -24,7 +16,4 @@ public class DateSlot {
         return slotDate;
     }
 
-    public int getDepartmentId() {
-        return departmentId;
-    }
 }

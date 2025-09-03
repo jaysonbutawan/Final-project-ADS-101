@@ -37,15 +37,12 @@ public class BookingStudentAdapter extends RecyclerView.Adapter<BookingStudentAd
         this.selectedStudentIds = new HashSet<>();
         this.listener = listener;
     }
-
     public void setMaxSelections(int maxSelections) {
         this.maxSelections = maxSelections;
     }
-
     public int getSelectedCount() {
         return selectedStudentIds.size();
     }
-
     public Set<Integer> getSelectedStudentIds() {
         return new HashSet<>(selectedStudentIds);
     }
@@ -70,7 +67,6 @@ public class BookingStudentAdapter extends RecyclerView.Adapter<BookingStudentAd
         boolean isSelected = selectedStudentIds.contains(studentId);
         holder.cbSelect.setChecked(isSelected);
 
-        // Set background color based on selection
         if (isSelected) {
             holder.cardView.setCardBackgroundColor(ContextCompat.getColor(context, R.color.yellow));
         } else {
@@ -81,7 +77,6 @@ public class BookingStudentAdapter extends RecyclerView.Adapter<BookingStudentAd
         holder.cbSelect.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
                 if (selectedStudentIds.size() >= maxSelections) {
-                    android.util.Log.d("BookingStudentAdapter", "Selection limit reached: " + maxSelections);
                     holder.cbSelect.setChecked(false);
                     if (listener != null) {
                         listener.onSelectionLimitReached(maxSelections);
@@ -92,8 +87,6 @@ public class BookingStudentAdapter extends RecyclerView.Adapter<BookingStudentAd
             } else {
                 selectedStudentIds.remove(studentId);
             }
-
-            // Update card background color immediately
             if (isChecked) {
                 holder.cardView.setCardBackgroundColor(ContextCompat.getColor(context, R.color.yellow));
             } else {
@@ -106,7 +99,6 @@ public class BookingStudentAdapter extends RecyclerView.Adapter<BookingStudentAd
         });
         holder.itemView.setOnClickListener(v -> holder.cbSelect.performClick());
     }
-
     @Override
     public int getItemCount() {
         return studentList != null ? studentList.size() : 0;
@@ -116,7 +108,6 @@ public class BookingStudentAdapter extends RecyclerView.Adapter<BookingStudentAd
         TextView tvStudentName, tvStudentCode, tvGradeAge;
         CheckBox cbSelect;
         CardView cardView;
-
         public BookingStudentViewHolder(@NonNull View itemView) {
             super(itemView);
             tvStudentName = itemView.findViewById(R.id.tvStudentName);

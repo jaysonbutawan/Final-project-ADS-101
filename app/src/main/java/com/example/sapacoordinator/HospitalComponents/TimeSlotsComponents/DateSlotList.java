@@ -32,11 +32,9 @@ public class DateSlotList extends Fragment {
     private DateAdapter adapter;
     private final List<DateSlot> dateSlotList = new ArrayList<>();
     private int departmentId;
-
-    // 🔑 Callback
     private OnDateSelectedListener callback;
 
-    // Factory method
+
     public static DateSlotList newInstance(int departmentId) {
         DateSlotList fragment = new DateSlotList();
         Bundle args = new Bundle();
@@ -45,37 +43,29 @@ public class DateSlotList extends Fragment {
         return fragment;
     }
 
-    // Interface
     public interface OnDateSelectedListener {
         void onDateSelected(int dateSlotId);
     }
 
-    // ✅ Allow manual injection of callback
     public void setCallback(OnDateSelectedListener listener) {
         this.callback = listener;
     }
 
-    // ✅ Fallback: if not manually injected, try to attach from activity
+
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         if (callback == null) {
             if (context instanceof OnDateSelectedListener) {
                 callback = (OnDateSelectedListener) context;
-                Log.d("DEBUG", "Callback attached via onAttach: " + callback);
-            } else {
-                Log.w("DEBUG", "Host activity does not implement OnDateSelectedListener");
             }
         }
     }
 
     private void handleDateSelection(int dateSlotId) {
-        Log.d("DEBUG", "Date selected with ID: " + dateSlotId);
-        if (callback != null) {
+       assert  callback != null;
             callback.onDateSelected(dateSlotId);
-        } else {
-            Log.w("DEBUG", "Callback is null, cannot notify parent.");
-        }
+
     }
 
     @SuppressLint("SetTextI18n")
@@ -106,7 +96,6 @@ public class DateSlotList extends Fragment {
     }
 
     private void loadDateSlots(int departmentId) {
-        Log.d("DEBUG", "Loading date slots for department: " + departmentId);
         ApiInterface api = ApiClient.getClient().create(ApiInterface.class);
         Call<List<DateSlot>> call = api.getDateSlots(departmentId);
 
@@ -115,7 +104,6 @@ public class DateSlotList extends Fragment {
             @Override
             public void onResponse(@NonNull Call<List<DateSlot>> call, @NonNull Response<List<DateSlot>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    Log.d("DEBUG", "API Success: " + new Gson().toJson(response.body()));
                     dateSlotList.clear();
                     dateSlotList.addAll(response.body());
                     adapter.notifyDataSetChanged();
@@ -125,7 +113,6 @@ public class DateSlotList extends Fragment {
                     recyclerView.setVisibility(dateSlotList.isEmpty() ? View.GONE : View.VISIBLE);
                 } else {
                     tvEmptyMessage.setText("Failed to load date slots.");
-                    Log.e("DEBUG", "API Error: " + response.code());
                     tvEmptyMessage.setVisibility(View.VISIBLE);
                     recyclerView.setVisibility(View.GONE);
                 }
@@ -135,21 +122,19 @@ public class DateSlotList extends Fragment {
             @Override
             public void onFailure(@NonNull Call<List<DateSlot>> call, @NonNull Throwable t) {
                 tvEmptyMessage.setText("Failed to load date slots.");
-                Log.e("DEBUG", "API Failure: " + t.getMessage(), t);
                 tvEmptyMessage.setVisibility(View.VISIBLE);
                 recyclerView.setVisibility(View.GONE);
             }
         });
     }
 
-    // ✅ Method to get the date string for a selected date slot
     public String getSelectedDateString(int dateSlotId) {
         for (DateSlot dateSlot : dateSlotList) {
             if (dateSlot.getSlotDateId() == dateSlotId) {
-                // Return the training date string
-                return dateSlot.getSlotDate(); // Assuming getTraining_date() returns the date string
+
+                return dateSlot.getSlotDate();
             }
         }
-        return "Unknown Date"; // Default fallback if not found
+        return "Unknown Date";
     }
 }
