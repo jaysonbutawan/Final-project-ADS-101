@@ -29,73 +29,33 @@ import retrofit2.Response;
 
 public class LoginActivity extends AppCompatActivity {
 
+    private AlertDialog loadingDialog;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_login);
 
-        EditText login_email_input = findViewById(R.id.login_email_input);
-        EditText login_password_input = findViewById(R.id.login_password_input);
-        Button login_button = findViewById(R.id.login_button);
+        EditText emailInput = findViewById(R.id.login_email_input);
+        EditText passwordInput = findViewById(R.id.login_password_input);
 
-        TextView sign_in_direct = findViewById(R.id.sign_in_direct);
-        sign_in_direct.setOnClickListener(v -> {
-            Intent intent = new Intent(this, SignUpActivity.class);
-            startActivity(intent);
-        });
+        findViewById(R.id.sign_in_direct).setOnClickListener(v ->
+                startActivity(new Intent(this, SignUpActivity.class)));
 
-        login_button.setOnClickListener(v -> {
-            String email = login_email_input.getText().toString().trim();
-            String password = login_password_input.getText().toString().trim();
+        findViewById(R.id.login_button).setOnClickListener(v -> {
+            String email = emailInput.getText().toString().trim();
+            String password = passwordInput.getText().toString().trim();
 
             if (email.isEmpty() || password.isEmpty()) {
-                new SweetAlertDialog(LoginActivity.this, SweetAlertDialog.WARNING_TYPE)
-                        .setTitleText("Missing Fields")
-                        .setContentText("Please fill in both Email and Password.")
-                        .show();
+                showDialog(SweetAlertDialog.WARNING_TYPE, "Missing Fields",
+                        "Please fill in both Email and Password.");
                 return;
             }
 
             showLoadingDialog();
-
-            ServerDetector.detectServer(LoginActivity.this, new ServerDetector.OnServerFoundListener() {
-                @Override
-                public void onServerFound(String baseUrl) {
-                    Log.d("ServerDetector", "Base URL detected: " + baseUrl);
-                    runOnUiThread(() -> {
-                        dismissLoadingDialog();
-                        ApiClient.setBaseUrl(baseUrl);
-
-                        loginUser(email, password);
-                    });
-                }
-
-                @Override
-                public void onServerNotFound() {
-                    runOnUiThread(() -> {
-                        dismissLoadingDialog();
-                        new SweetAlertDialog(LoginActivity.this, SweetAlertDialog.ERROR_TYPE)
-                                .setTitleText("Server Not Found")
-                                .setContentText("Please check your network connection and try again.")
-                                .show();
-                    });
-                }
-
-                @Override
-                public void onDetectionError(Exception e) {
-                    runOnUiThread(() -> {
-                        dismissLoadingDialog();
-                        new SweetAlertDialog(LoginActivity.this, SweetAlertDialog.ERROR_TYPE)
-                                .setTitleText("Detection Error")
-                                .setContentText("Error detecting server: " + e.getMessage())
-                                .show();
-                    });
-                }
-            });
+            detectServerAndLogin(email, password);
         });
-
-
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.loginmain), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -103,81 +63,96 @@ public class LoginActivity extends AppCompatActivity {
             return insets;
         });
     }
-    // Show progress dialog while detecting server
-    AlertDialog loadingDialog;
+
+    private void detectServerAndLogin(String email, String password) {
+        ServerDetector.detectServer(this, new ServerDetector.OnServerFoundListener() {
+            @Override
+            public void onServerFound(String baseUrl) {
+                runOnUiThread(() -> {
+                    dismissLoadingDialog();
+                    ApiClient.setBaseUrl(baseUrl);
+                    loginUser(email, password);
+                });
+            }
+
+            @Override
+            public void onServerNotFound() {
+                runOnUiThread(() -> {
+                    dismissLoadingDialog();
+                    showDialog(SweetAlertDialog.ERROR_TYPE, "Server Not Found",
+                            "Please check your network connection and try again.");
+                });
+            }
+
+            @Override
+            public void onDetectionError(Exception e) {
+                runOnUiThread(() -> {
+                    dismissLoadingDialog();
+                    showDialog(SweetAlertDialog.ERROR_TYPE, "Detection Error",
+                            "Error detecting server: " + e.getMessage());
+                });
+            }
+        });
+    }
 
     private void showLoadingDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        View view = getLayoutInflater().inflate(R.layout.dialog_loading, null);
-        builder.setView(view);
-        builder.setCancelable(false); // same behavior as your ProgressDialog
-
-        loadingDialog = builder.create();
+        if (loadingDialog == null) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            View view = getLayoutInflater().inflate(R.layout.dialog_loading, null);
+            builder.setView(view).setCancelable(false);
+            loadingDialog = builder.create();
+        }
         loadingDialog.show();
     }
 
     private void dismissLoadingDialog() {
-        if (loadingDialog != null && loadingDialog.isShowing()) {
-            loadingDialog.dismiss();
-        }
+        if (loadingDialog != null && loadingDialog.isShowing()) loadingDialog.dismiss();
     }
 
-
     private void loginUser(String email, String password) {
-        Log.d("LoginActivity", "Login API started: " + email);
         ApiInterface api = ApiClient.getClient().create(ApiInterface.class);
-        Call<GenericResponse> call = api.loginUser(email, password);
-
-        call.enqueue(new Callback<>() {
+        api.loginUser(email, password).enqueue(new Callback<>() {
             @Override
-            public void onResponse(@NonNull Call<GenericResponse> call, @NonNull Response<GenericResponse> response) {
-                Log.d("LoginActivity", "API Response: " + response.code());
+            public void onResponse(@NonNull Call<GenericResponse> call,
+                                   @NonNull Response<GenericResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     handleLoginSuccess(response.body());
                 } else {
-                    showError("Login failed. Server error: " + response.code());
+                    showDialog(SweetAlertDialog.ERROR_TYPE, "Login Failed",
+                            "Server error: " + response.code());
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call<GenericResponse> call, @NonNull Throwable t) {
-                Log.e("LoginActivity", "Login API failed: " + t.getMessage(), t);
-                showError("Connection Error: " + t.getMessage());
+                showDialog(SweetAlertDialog.ERROR_TYPE, "Connection Error", t.getMessage());
             }
         });
     }
 
-
     private void handleLoginSuccess(GenericResponse res) {
         if (res.isSuccess()) {
-            int userId = res.getUserId();
-            SharedPreferences prefs = getSharedPreferences("UserSession", MODE_PRIVATE);
-            prefs.edit().putInt("user_id", userId).apply();
+            getSharedPreferences("UserSession", MODE_PRIVATE)
+                    .edit().putInt("user_id", res.getUserId()).apply();
 
-            new SweetAlertDialog(LoginActivity.this, SweetAlertDialog.SUCCESS_TYPE)
+            new SweetAlertDialog(this, SweetAlertDialog.SUCCESS_TYPE)
                     .setTitleText("Welcome!")
                     .setContentText(res.getMessage())
                     .setConfirmClickListener(sDialog -> {
                         sDialog.dismissWithAnimation();
-                        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                        startActivity(intent);
+                        startActivity(new Intent(this, MainActivity.class));
                         finish();
                     })
                     .show();
         } else {
-            new SweetAlertDialog(LoginActivity.this, SweetAlertDialog.ERROR_TYPE)
-                    .setTitleText("Login Failed")
-                    .setContentText(res.getMessage())
-                    .show();
+            showDialog(SweetAlertDialog.ERROR_TYPE, "Login Failed", res.getMessage());
         }
     }
 
-    private void showError(String message) {
-        new SweetAlertDialog(LoginActivity.this, SweetAlertDialog.ERROR_TYPE)
-                .setTitleText("Connection Error")
+    private void showDialog(int type, String title, String message) {
+        new SweetAlertDialog(this, type)
+                .setTitleText(title)
                 .setContentText(message)
                 .show();
     }
-
-
 }

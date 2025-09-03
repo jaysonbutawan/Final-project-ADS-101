@@ -66,12 +66,7 @@ public class TimeSlotList extends Fragment {
 
         return view;
     }
-    public void updateTimeSlots(int newDateSlotId) {
-        loadTimeSlots(newDateSlotId); // 🔥 refresh dynamically
-    }
 
-
-    // ✅ Single dynamic method for loading timeslots
     public void loadTimeSlots(int dateSlotId) {
         if (dateSlotId == -1) {
             showMessage("Invalid date slot.", true);
@@ -98,12 +93,8 @@ public class TimeSlotList extends Fragment {
                         timeSlotList.addAll(newSlots);
                         adapter.updateData(newSlots);
                     }
-
-                    Log.d("API_RESPONSE", "Time slots loaded: " + newSlots.size());
-                    Log.d("API_RESPONSE", new Gson().toJson(newSlots));
                 } else {
                     showMessage("Failed to load time slots.", true);
-                    Log.d("API_RESPONSE", "Failed: " + response.message());
                 }
             }
 
@@ -111,7 +102,6 @@ public class TimeSlotList extends Fragment {
             @Override
             public void onFailure(@NonNull Call<List<TimeSlotModel>> call, @NonNull Throwable t) {
                 showMessage("Failed to load time slots.", true);
-                Log.e("API_RESPONSE", "Error: " + t.getMessage(), t);
             }
         });
     }
@@ -149,7 +139,7 @@ public class TimeSlotList extends Fragment {
                 return timeSlot.getStart_time()+"-"+ timeSlot.getEnd_time();
             }
         }
-        return "Unknown Time Slot"; // Default text if not found
+        return "Unknown Time Slot";
     }
 
     public interface OnTimeSlotSelectedListener {

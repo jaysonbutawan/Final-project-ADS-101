@@ -2,16 +2,13 @@ package com.example.sapacoordinator.SchoolComponents;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.Button;
+
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.OnBackPressedCallback;
@@ -48,14 +45,13 @@ import retrofit2.Response;
 public class ChooseAction extends AppCompatActivity implements BillAdapter.OnBillClickListener {
 
     private String schoolName, schoolAddress, schoolContact;
-    private int schoolId;
-    private int userId;
-    private TextView tvStudentsCount, tvAppointmentsCount;
+    private int schoolId, userId;
 
+    private TextView tvSchoolName, tvAddress, tvContact, tvStudentsCount, tvAppointmentsCount;
     private RecyclerView rvBills;
     private TextView tvEmptyMessage, tvViewAll;
     private BillAdapter billAdapter;
-    private List<Bill> billList;
+    private final List<Bill> billList = new ArrayList<>();
 
     @SuppressLint("SetTextI18n")
     @Override
@@ -70,145 +66,118 @@ public class ChooseAction extends AppCompatActivity implements BillAdapter.OnBil
             return insets;
         });
 
-        // Get current logged-in user_id from SharedPreferences
-        SharedPreferences prefs = getSharedPreferences("UserSession", MODE_PRIVATE);
-        userId = prefs.getInt("user_id", -1);
+        // Load user and school data
+        userId = getSharedPreferences("UserSession", MODE_PRIVATE).getInt("user_id", -1);
+        updateSchoolDataFromIntent(getIntent());
 
-        // Get school data from Intent
-        Intent receivedIntent = getIntent();
-        schoolName = receivedIntent.getStringExtra("school_name");
-        schoolAddress = receivedIntent.getStringExtra("school_address");
-        schoolContact = receivedIntent.getStringExtra("school_contact");
-        schoolId = receivedIntent.getIntExtra("school_id", -1);
-
-        TextView tvSchoolName = findViewById(R.id.tvSchoolName);
-        TextView tvAddress = findViewById(R.id.tvAddress);
-        TextView tvContact = findViewById(R.id.tvContact);
+        // Setup UI
+        tvSchoolName = findViewById(R.id.tvSchoolName);
+        tvAddress = findViewById(R.id.tvAddress);
+        tvContact = findViewById(R.id.tvContact);
         tvStudentsCount = findViewById(R.id.tvStudentsCount);
         tvAppointmentsCount = findViewById(R.id.tvappointmentsCount);
 
-        if (schoolName != null) tvSchoolName.setText(schoolName);
-        if (schoolAddress != null) tvAddress.setText(schoolAddress);
-        if (schoolContact != null) tvContact.setText(schoolContact);
-
-        // Initialize bill container
+        updateSchoolUI();
         initializeBillContainer();
+        setupClickListeners();
 
-        // Handle Add Student Button
-        Button btnAddStudent = findViewById(R.id.btnAddStudent);
-        btnAddStudent.setOnClickListener(v -> {
-            Intent intent = new Intent(ChooseAction.this, StudentsRegistration.class);
-            intent.putExtra("school_id", schoolId);
-            intent.putExtra("school_name", schoolName);
-            intent.putExtra("school_address", schoolAddress);
-            intent.putExtra("school_contact", schoolContact);
-            startActivity(intent);
-        });
+        refreshAllData();
 
-        Button bookAppointment = findViewById(R.id.btnBookAppointment);
-        bookAppointment.setOnClickListener(v -> {
-            Intent intent = new Intent(ChooseAction.this, HospitalActivity.class);
-            intent.putExtra("school_id", schoolId);
-            intent.putExtra("user_id", userId);
-            startActivity(intent);
-        });
-
-        LinearLayout llStudentsCount = findViewById(R.id.studentsCountContainer);
-        llStudentsCount.setOnClickListener(v -> {
-            Intent intent = new Intent(ChooseAction.this, StudentActivity.class);
-            intent.putExtra("user_id", userId);
-            intent.putExtra("school_id", schoolId);
-            startActivity(intent);
-        });
-
-        LinearLayout appointmentsCount = findViewById(R.id.appointmentsCountContainer);
-        appointmentsCount.setOnClickListener(v -> {
-            Intent intent = new Intent(ChooseAction.this, ChooseActionBooking.class);
-            intent.putExtra("school_id", schoolId);
-            startActivity(intent);
-        });
-
-        fetchBookingCount();
-        fetchStudentCount();
-        loadBills(); // Load bills into the container
-
-        // Handle back navigation using OnBackPressedDispatcher
-        OnBackPressedCallback callback = new OnBackPressedCallback(true) {
-            @Override
-            public void handleOnBackPressed() {
-                Intent intent = new Intent(ChooseAction.this, activity_register_school.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
+        // Back navigation
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override public void handleOnBackPressed() {
+                startActivity(new Intent(ChooseAction.this, activity_register_school.class)
+                        .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK));
                 finish();
             }
-        };
-        getOnBackPressedDispatcher().addCallback(this, callback);
+        });
     }
 
+    private void setupClickListeners() {
+        findViewById(R.id.btnAddStudent).setOnClickListener(v ->
+                startActivity(withSchoolExtras(new Intent(this, StudentsRegistration.class)))
+        );
+
+        findViewById(R.id.btnBookAppointment).setOnClickListener(v -> {
+            Intent i = new Intent(this, HospitalActivity.class);
+            i.putExtra("school_id", schoolId);
+            i.putExtra("user_id", userId);
+            startActivity(i);
+        });
+
+        findViewById(R.id.studentsCountContainer).setOnClickListener(v ->
+                startActivity(new Intent(this, StudentActivity.class)
+                        .putExtra("user_id", userId)
+                        .putExtra("school_id", schoolId))
+        );
+
+        findViewById(R.id.appointmentsCountContainer).setOnClickListener(v ->
+                startActivity(new Intent(this, ChooseActionBooking.class)
+                        .putExtra("school_id", schoolId))
+        );
+    }
 
     private void initializeBillContainer() {
-        // Bill-related components
         FrameLayout billContainer = findViewById(R.id.billContainer);
-
-        // Inflate the bill list layout into the container
         View billListView = LayoutInflater.from(this).inflate(R.layout.fragment_bill_list, billContainer, false);
         billContainer.addView(billListView);
 
-        // Initialize bill components
         rvBills = billListView.findViewById(R.id.rvBills);
         tvEmptyMessage = billListView.findViewById(R.id.tvEmptyMessage);
         tvViewAll = billListView.findViewById(R.id.tvViewAll);
 
-        // Setup RecyclerView
-        billList = new ArrayList<>();
         billAdapter = new BillAdapter(billList, this);
-        billAdapter.setOnBillClickListener(this);
-
         rvBills.setLayoutManager(new LinearLayoutManager(this));
         rvBills.setAdapter(billAdapter);
 
-        // Handle "View All" click
-        tvViewAll.setOnClickListener(v -> {
-            Intent intent = new Intent(ChooseAction.this, BillListActivity.class);
-            intent.putExtra("school_id", schoolId);
-            intent.putExtra("school_name", schoolName);
-            startActivity(intent);
-        });
+        tvViewAll.setOnClickListener(v ->
+                startActivity(withSchoolExtras(new Intent(this, BillListActivity.class)))
+        );
     }
 
     private void loadBills() {
-        ApiInterface apiInterface = ApiClient.getClient().create(ApiInterface.class);
-        Call<List<Bill>> call = apiInterface.getBillsBySchool(schoolId);
-
-        call.enqueue(new Callback<>() {
-            @Override
-            public void onResponse(@NonNull Call<List<Bill>> call, @NonNull Response<List<Bill>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    List<Bill> bills = response.body();
-
-                    if (bills.isEmpty()) {
-                        showEmptyBillState();
-                    } else {
-                        hideEmptyBillState();
-                        billList.clear();
-                        // Show only first 3 bills in the overview, or all if less than 3
-                        List<Bill> displayBills = bills.size() > 3 ? bills.subList(0, 3) : bills;
-                        billList.addAll(displayBills);
-                        billAdapter.updateBills(billList);
-
-                        // Show/hide "View All" based on bill count
-                        tvViewAll.setVisibility(bills.size() > 3 ? View.VISIBLE : View.GONE);
+        ApiClient.getClient().create(ApiInterface.class)
+                .getBillsBySchool(schoolId)
+                .enqueue(new Callback<>() {
+                    @Override
+                    public void onResponse(@NonNull Call<List<Bill>> call, @NonNull Response<List<Bill>> resp) {
+                        if (resp.isSuccessful() && resp.body() != null && !resp.body().isEmpty()) {
+                            hideEmptyBillState();
+                            billList.clear();
+                            billList.addAll(resp.body().size() > 3 ? resp.body().subList(0, 3) : resp.body());
+                            billAdapter.updateBills(billList);
+                            tvViewAll.setVisibility(resp.body().size() > 3 ? View.VISIBLE : View.GONE);
+                        } else showEmptyBillState();
                     }
-                } else {
-                    Log.e("ChooseAction", "Failed to load bills: " + response.message());
-                    showEmptyBillState();
-                }
-            }
 
-            @Override
-            public void onFailure(@NonNull Call<List<Bill>> call, @NonNull Throwable t) {
-                Log.e("ChooseAction", "Error loading bills", t);
-                showEmptyBillState();
+                    @Override
+                    public void onFailure(@NonNull Call<List<Bill>> call, @NonNull Throwable t) {
+                        Log.e("ChooseAction", "Error loading bills", t);
+                        showEmptyBillState();
+                    }
+                });
+    }
+
+    private void fetchCounts() {
+        ApiInterface api = ApiClient.getClient().create(ApiInterface.class);
+
+        api.getStudentCount(userId, schoolId).enqueue(new Callback<>() {
+            @Override public void onResponse(@NonNull Call<GenericResponse> call, @NonNull Response<GenericResponse> resp) {
+                tvStudentsCount.setText(resp.isSuccessful() && resp.body() != null ?
+                        String.valueOf(resp.body().getStudent_count()) : "0");
+            }
+            @Override public void onFailure(@NonNull Call<GenericResponse> call, @NonNull Throwable t) {
+                tvStudentsCount.setText("0");
+            }
+        });
+
+        api.getBookingCount(schoolId).enqueue(new Callback<>() {
+            @Override public void onResponse(@NonNull Call<GenericResponse> call, @NonNull Response<GenericResponse> resp) {
+                tvAppointmentsCount.setText(resp.isSuccessful() && resp.body() != null ?
+                        String.valueOf(resp.body().getBooking_count()) : "0");
+            }
+            @Override public void onFailure(@NonNull Call<GenericResponse> call, @NonNull Throwable t) {
+                tvAppointmentsCount.setText("0");
             }
         });
     }
@@ -224,11 +193,13 @@ public class ChooseAction extends AppCompatActivity implements BillAdapter.OnBil
         tvEmptyMessage.setVisibility(View.GONE);
     }
 
-    // Implement BillAdapter.OnBillClickListener methods
     @Override
     public void onPayNowClick(Bill bill) {
-
-        navigateToFinalPayment(bill);
+        startActivity(withSchoolExtras(new Intent(this, FinalPayment.class)
+                .putExtra("appointment_id", bill.getAppointmentId())
+                .putExtra("bill_id", bill.getBillId())
+                .putExtra("bill_reference", bill.getBillReference())
+                .putExtra("total_amount", bill.getTotalAmount())));
     }
 
     @Override
@@ -236,144 +207,53 @@ public class ChooseAction extends AppCompatActivity implements BillAdapter.OnBil
         new SweetAlertDialog(this, SweetAlertDialog.SUCCESS_TYPE)
                 .setTitleText("Receipt")
                 .setContentText("Receipt for bill " + bill.getBillReference() +
-                               "\nAmount: " + bill.getFormattedAmount() +
-                               "\nPaid on: " + bill.getPaidDate())
+                        "\nAmount: " + bill.getFormattedAmount() +
+                        "\nPaid on: " + bill.getPaidDate())
                 .setConfirmText("OK")
                 .show();
     }
 
-    private void navigateToFinalPayment(Bill bill) {
-        Intent intent = new Intent(ChooseAction.this, FinalPayment.class);
-        intent.putExtra("appointment_id", bill.getAppointmentId());
-        intent.putExtra("bill_id", bill.getBillId());
-        intent.putExtra("bill_reference", bill.getBillReference());
-        intent.putExtra("total_amount", bill.getTotalAmount());
-        intent.putExtra("school_id", schoolId);
-        intent.putExtra("school_name", schoolName);
-        intent.putExtra("school_address", schoolAddress);
-        intent.putExtra("school_contact", schoolContact);
-        startActivity(intent);
+    private Intent withSchoolExtras(Intent intent) {
+        return intent.putExtra("school_id", schoolId)
+                .putExtra("school_name", schoolName)
+                .putExtra("school_address", schoolAddress)
+                .putExtra("school_contact", schoolContact);
     }
 
-    private void fetchStudentCount() {
-        ApiInterface apiInterface = ApiClient.getClient().create(ApiInterface.class);
-        Call<GenericResponse> call = apiInterface.getStudentCount(userId, schoolId);
-
-        call.enqueue(new Callback<>() {
-            @Override
-            public void onResponse(@NonNull Call<GenericResponse> call, @NonNull Response<GenericResponse> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    tvStudentsCount.setText(String.valueOf(response.body().getStudent_count()));
-                    Log.d("COUNT_DEBUG", "Student count response: " + response.body().getStudent_count());
-                } else {
-                    tvStudentsCount.setText("0");
-                }
-            }
-
-            @Override
-            public void onFailure(@NonNull Call<GenericResponse> call, @NonNull Throwable t) {
-                tvStudentsCount.setText("0");
-                Toast.makeText(ChooseAction.this, "Failed to load count", Toast.LENGTH_SHORT).show();
-            }
-        });
+    private void updateSchoolDataFromIntent(Intent intent) {
+        schoolId = intent.getIntExtra("school_id", -1);
+        schoolName = intent.getStringExtra("school_name");
+        schoolAddress = intent.getStringExtra("school_address");
+        schoolContact = intent.getStringExtra("school_contact");
     }
 
-    private void fetchBookingCount() {
-        ApiInterface apiInterface = ApiClient.getClient().create(ApiInterface.class);
-        Call<GenericResponse> call = apiInterface.getBookingCount(schoolId);
+    private void updateSchoolUI() {
+        if (schoolName != null) tvSchoolName.setText(schoolName);
+        if (schoolAddress != null) tvAddress.setText(schoolAddress);
+        if (schoolContact != null) tvContact.setText(schoolContact);
+    }
 
-        call.enqueue(new Callback<>() {
-            @Override
-            public void onResponse(@NonNull Call<GenericResponse> call, @NonNull Response<GenericResponse> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    Log.d("COUNT_DEBUG", "Booking count response: " + response.body().getBooking_count());
-                    tvAppointmentsCount.setText(String.valueOf(response.body().getBooking_count()));
-                } else {
-                    tvAppointmentsCount.setText("0");
-                }
-            }
-
-            @Override
-            public void onFailure(@NonNull Call<GenericResponse> call, @NonNull Throwable t) {
-                tvAppointmentsCount.setText("0");
-                Toast.makeText(ChooseAction.this, "Failed to load booking count", Toast.LENGTH_SHORT).show();
-            }
-        });
+    private void refreshAllData() {
+        if (schoolId == -1) {
+            Log.e("ChooseAction", "Cannot refresh - invalid school ID");
+            return;
+        }
+        fetchCounts();
+        loadBills();
     }
 
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
-
-        // Update school data from new intent FIRST
-        updateSchoolDataFromIntent();
-
-        // Then refresh all data
+        updateSchoolDataFromIntent(intent);
+        updateSchoolUI();
         refreshAllData();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-
-        // Only refresh data if school data is properly set
-        if (schoolId != -1 && schoolName != null) {
-            refreshAllData();
-        }
-    }
-
-    private void updateSchoolDataFromIntent() {
-        Intent receivedIntent = getIntent();
-        String newSchoolName = receivedIntent.getStringExtra("school_name");
-        String newSchoolAddress = receivedIntent.getStringExtra("school_address");
-        String newSchoolContact = receivedIntent.getStringExtra("school_contact");
-        int newSchoolId = receivedIntent.getIntExtra("school_id", -1);
-
-        // Only update if we have valid data
-        if (newSchoolId != -1) {
-            schoolId = newSchoolId;
-        }
-        if (newSchoolName != null) {
-            schoolName = newSchoolName;
-        }
-        if (newSchoolAddress != null) {
-            schoolAddress = newSchoolAddress;
-        }
-        if (newSchoolContact != null) {
-            schoolContact = newSchoolContact;
-        }
-
-        // Update UI with fresh data
-        TextView tvSchoolName = findViewById(R.id.tvSchoolName);
-        TextView tvAddress = findViewById(R.id.tvAddress);
-        TextView tvContact = findViewById(R.id.tvContact);
-
-        if (schoolName != null) {
-            tvSchoolName.setText(schoolName);
-        }
-        if (schoolAddress != null) {
-            tvAddress.setText(schoolAddress);
-        }
-        if (schoolContact != null) {
-            tvContact.setText(schoolContact);
-        }
-
-        Log.d("ChooseAction", "Updated school data - ID: " + schoolId + ", Name: " + schoolName);
-    }
-
-    private void refreshAllData() {
-        // Only refresh if we have valid school ID
-        if (schoolId == -1) {
-            Log.e("ChooseAction", "Cannot refresh data - invalid school ID");
-            return;
-        }
-
-        Log.d("ChooseAction", "Refreshing data for school ID: " + schoolId);
-
-        // Refresh all counts and data
-        fetchBookingCount();
-        fetchStudentCount();
-        loadBills();
+        if (schoolId != -1) refreshAllData();
     }
 }

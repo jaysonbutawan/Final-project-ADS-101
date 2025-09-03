@@ -175,7 +175,10 @@ public interface ApiInterface {
 
     @FormUrlEncoded
     @POST("pay_bill.php")
-    Call<GenericResponse> payBill(@Field("bill_id") int billId);
+    Call<GenericResponse> payBill(
+            @Field("bill_id") int billId,
+            @Field("amount_paid") double amountPaid
+    );
 
     @GET("get_bill_details.php")
     Call<com.example.sapacoordinator.BillComponents.Bill> getBillDetails(@Query("bill_id") int billId);

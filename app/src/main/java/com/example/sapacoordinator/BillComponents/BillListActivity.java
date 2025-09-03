@@ -132,7 +132,6 @@ public class BillListActivity extends AppCompatActivity implements BillAdapter.O
                 .setCancelText("Cancel")
                 .setConfirmClickListener(sweetAlertDialog -> {
                     sweetAlertDialog.dismissWithAnimation();
-                    processBillPayment(bill);
                 })
                 .setCancelClickListener(SweetAlertDialog::dismissWithAnimation)
                 .show();
@@ -147,60 +146,6 @@ public class BillListActivity extends AppCompatActivity implements BillAdapter.O
                                "\nPaid on: " + bill.getPaidDate())
                 .setConfirmText("OK")
                 .show();
-    }
-
-    private void processBillPayment(Bill bill) {
-        SweetAlertDialog loadingDialog = new SweetAlertDialog(this, SweetAlertDialog.PROGRESS_TYPE);
-        loadingDialog.setTitleText("Processing Payment...");
-        loadingDialog.setCancelable(false);
-        loadingDialog.show();
-
-        ApiInterface apiInterface = ApiClient.getClient().create(ApiInterface.class);
-        Call<GenericResponse> call = apiInterface.payBill(bill.getBillId());
-
-        call.enqueue(new Callback<>() {
-            @Override
-            public void onResponse(@NonNull Call<GenericResponse> call,
-                                   @NonNull Response<GenericResponse> response) {
-                loadingDialog.dismissWithAnimation();
-
-                if (response.isSuccessful() && response.body() != null) {
-                    if (response.body().isSuccess()) {
-                        new SweetAlertDialog(BillListActivity.this, SweetAlertDialog.SUCCESS_TYPE)
-                                .setTitleText("Payment Successful!")
-                                .setContentText("Bill " + bill.getBillReference() + " has been paid successfully.")
-                                .setConfirmText("OK")
-                                .setConfirmClickListener(sweetAlertDialog -> {
-                                    sweetAlertDialog.dismissWithAnimation();
-                                    loadBills();
-                                })
-                                .show();
-                    } else {
-                        new SweetAlertDialog(BillListActivity.this, SweetAlertDialog.ERROR_TYPE)
-                                .setTitleText("Payment Failed")
-                                .setContentText(response.body().getMessage())
-                                .setConfirmText("OK")
-                                .show();
-                    }
-                } else {
-                    new SweetAlertDialog(BillListActivity.this, SweetAlertDialog.ERROR_TYPE)
-                            .setTitleText("Payment Failed")
-                            .setContentText("Failed to process payment. Please try again.")
-                            .setConfirmText("OK")
-                            .show();
-                }
-            }
-
-            @Override
-            public void onFailure(@NonNull Call<com.example.sapacoordinator.DatabaseConnector.GenericResponse> call, @NonNull Throwable t) {
-                loadingDialog.dismissWithAnimation();
-                new SweetAlertDialog(BillListActivity.this, SweetAlertDialog.ERROR_TYPE)
-                        .setTitleText("Payment Error")
-                        .setContentText("Error processing payment: " + t.getMessage())
-                        .setConfirmText("OK")
-                        .show();
-            }
-        });
     }
 
     private void setupBackNavigation() {

@@ -30,15 +30,13 @@ public class ServerDetector {
             String ipString = Formatter.formatIpAddress(wifiInfo.getIpAddress());
 
             if (ipString == null || !ipString.contains(".")) {
-                Log.e("ServerDetector", "Invalid IP address: " + ipString);
                 mainHandler.post(listener::onServerNotFound);
                 return;
             }
 
-            String baseSubnet = ipString.substring(0, ipString.lastIndexOf(".") + 1); // e.g., 192.168.1.
-            Log.d("ServerDetector", "Scanning subnet: " + baseSubnet + "1-254");
+            String baseSubnet = ipString.substring(0, ipString.lastIndexOf(".") + 1);
 
-            ExecutorService executor = Executors.newFixedThreadPool(20); // scan in parallel
+            ExecutorService executor = Executors.newFixedThreadPool(20);
 
             final boolean[] found = {false};
 
@@ -62,7 +60,6 @@ public class ServerDetector {
                 });
             }
 
-            // If no server found after scanning, trigger not found
             executor.shutdown();
             new Thread(() -> {
                 try {

@@ -48,7 +48,6 @@
                     android:textColor="@color/black"
                     android:textSize="14sp"
                     android:textStyle="bold"
-                    android:background="@android:color/darker_gray"
                     android:paddingHorizontal="8dp"
                     android:paddingVertical="4dp"
                     tools:text="Unpaid"/>

@@ -61,9 +61,8 @@ public class BillAdapter extends RecyclerView.Adapter<BillAdapter.BillViewHolder
         // Configure UI based on payment status
         if (bill.isPaid()) {
             // Paid bill styling
-            holder.cardView.setCardBackgroundColor(ContextCompat.getColor(context, R.color.primary_light));
+            holder.cardView.setAlpha(0.5f);
             holder.tvStatus.setTextColor(ContextCompat.getColor(context, android.R.color.holo_green_dark));
-            holder.tvStatus.setBackgroundColor(ContextCompat.getColor(context, android.R.color.holo_green_light));
             holder.tvTotalAmount.setTextColor(ContextCompat.getColor(context, android.R.color.holo_green_dark));
 
             // Show paid date and hide pay button
@@ -73,7 +72,7 @@ public class BillAdapter extends RecyclerView.Adapter<BillAdapter.BillViewHolder
             }
 
             holder.btnAction.setText(context.getString(R.string.view_receipt));
-            holder.btnAction.setBackgroundTintList(ContextCompat.getColorStateList(context, android.R.color.holo_green_dark));
+            holder.btnAction.setBackgroundTintList(ContextCompat.getColorStateList(context, R.color.colorPrimary));
             holder.btnAction.setOnClickListener(v -> {
                 if (onBillClickListener != null) {
                     onBillClickListener.onViewReceiptClick(bill);
@@ -83,7 +82,6 @@ public class BillAdapter extends RecyclerView.Adapter<BillAdapter.BillViewHolder
             // Unpaid bill styling
             holder.cardView.setCardBackgroundColor(ContextCompat.getColor(context, R.color.white));
             holder.tvStatus.setTextColor(ContextCompat.getColor(context, android.R.color.holo_red_dark));
-            holder.tvStatus.setBackgroundColor(ContextCompat.getColor(context, android.R.color.holo_red_light));
             holder.tvTotalAmount.setTextColor(ContextCompat.getColor(context, android.R.color.holo_red_dark));
 
             // Hide paid date

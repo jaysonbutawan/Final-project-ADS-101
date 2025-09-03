@@ -56,22 +56,10 @@ public class PaymentList extends Fragment {
     private void loadSelectedStudents() {
         if (getArguments() != null) {
             ArrayList<Student> students = getArguments().getParcelableArrayList("selected_students");
-            if (students != null) {
-                selectedStudents.clear();
-                selectedStudents.addAll(students);
+            selectedStudents.clear();
+            assert students != null;
+            selectedStudents.addAll(students);
 
-                // ✅ Add debugging to track data flow
-                Log.d("PaymentList", "=== STUDENTS RECEIVED IN PAYMENT LIST ===");
-                Log.d("PaymentList", "Total students received: " + students.size());
-                for (int i = 0; i < students.size(); i++) {
-                    Student student = students.get(i);
-                    Log.d("PaymentList", "Student " + (i + 1) + ": " + student.getFirstname() + " " + student.getLastname() + " (ID: " + student.getStudentId() + ")");
-                }
-            } else {
-                Log.w("PaymentList", "No students data found in arguments");
-            }
-        } else {
-            Log.w("PaymentList", "No arguments bundle found");
         }
     }
 
@@ -89,15 +77,5 @@ public class PaymentList extends Fragment {
             recyclerSelectedStudents.setLayoutManager(new LinearLayoutManager(getContext()));
             recyclerSelectedStudents.setAdapter(adapter);
         }
-    }
-
-    @SuppressLint("NotifyDataSetChanged")
-    public void updateStudentList(List<Student> students) {
-        selectedStudents.clear();
-        selectedStudents.addAll(students);
-        if (adapter != null) {
-            adapter.notifyDataSetChanged();
-        }
-        setupRecyclerView();
     }
 }

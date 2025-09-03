@@ -38,10 +38,8 @@ public class activity_register_school extends AppCompatActivity {
             else tab.setText("Add School");
         }).attach();
 
-        // Check if we're in edit mode and navigate directly to the Add School tab
         boolean directToEdit = getIntent().getBooleanExtra("direct_to_edit", false);
         if (directToEdit) {
-            // Navigate to the "Add School" tab (position 2)
             viewPager.setCurrentItem(2, false);
         }
     }

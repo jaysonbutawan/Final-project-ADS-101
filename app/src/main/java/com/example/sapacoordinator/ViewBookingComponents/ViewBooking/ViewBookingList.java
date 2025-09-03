@@ -152,7 +152,6 @@ public class ViewBookingList extends Fragment {
             departmentSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                    // Exit selection mode when user interacts with spinner
                     if (adapter != null && adapter.isSelectionMode()) {
                         adapter.exitSelectionMode();
                     }
@@ -167,8 +166,6 @@ public class ViewBookingList extends Fragment {
                     }
                     Department selectedDept = departments.get(position - 1);
                     selectedDepartmentId = selectedDept.getDepartment_id();
-
-                    Log.d(TAG, "User selected Department: " + selectedDept.getSection_name() + " (ID: " + selectedDepartmentId + ")");
                     loadDates(selectedDepartmentId);
                     selectedDateId = -1;
                     selectedTimeId = -1;
@@ -185,25 +182,19 @@ public class ViewBookingList extends Fragment {
             dateSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                    // Exit selection mode when user interacts with spinner
                     if (adapter != null && adapter.isSelectionMode()) {
                         adapter.exitSelectionMode();
                     }
 
                     if (position == 0) {
-                        // "All Dates"
                         selectedDateId = -1;
                         selectedTimeId = -1;
                         setupEmptyTimeSpinner();
                         return;
                     }
 
-                    String selectedDate = parent.getSelectedItem().toString();
-                    Log.d(TAG, "Selected Date: " + selectedDate);
                     DateSlot selectedSlot = dateSlots.get(position - 1);
                     selectedDateId = selectedSlot.getSlotDateId();
-
-                    Log.d(TAG, "Selected DateSlotID: " + selectedDateId);
                     loadTimes(selectedDateId);
                     applyFilters();
                     selectedTimeId = -1;
@@ -218,26 +209,12 @@ public class ViewBookingList extends Fragment {
             timeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                    // Exit selection mode when user interacts with spinner
-                    if (adapter != null && adapter.isSelectionMode()) {
-                        adapter.exitSelectionMode();
-                    }
+                    if (adapter != null && adapter.isSelectionMode()) {adapter.exitSelectionMode(); }
+                    if (position == 0) { selectedTimeId = -1; return;}
 
-                    if (position == 0) {
-                        // "All Times"
-                        selectedTimeId = -1;
-                        return;
-                    }
-
-                    String selectedTime = parent.getSelectedItem().toString();
-                    Log.d(TAG, "Selected Time: " + selectedTime);
-
-                    // ✅ Get the selected time slot object
-                    TimeSlotModel selectedSlot = timeSlots.get(position - 1); // offset for "All Times"
+                    TimeSlotModel selectedSlot = timeSlots.get(position - 1);
                     selectedTimeId = selectedSlot.getTime_slot_id();
                     applyFilters();
-
-                    Log.d(TAG, "Selected TimeSlotID: " + selectedTimeId);
                 }
 
                 @Override
@@ -775,13 +752,6 @@ public class ViewBookingList extends Fragment {
         );
 
         Call<GenericResponse> call = api.cancelAppointment(request);
-        Log.d("DEBUG_", "Cancel Params -> schoolId=" + schoolId
-                + " hospitalId=" + hospitalId
-                + " deptId=" + deptToSend
-                + " dateId=" + selectedDateId
-                + " timeId=" + selectedTimeId
-                + " studentIds=" + studentIds);
-
         call.enqueue(new Callback<>() {
             @Override
             public void onResponse(@NonNull Call<GenericResponse> call, @NonNull Response<GenericResponse> response) {

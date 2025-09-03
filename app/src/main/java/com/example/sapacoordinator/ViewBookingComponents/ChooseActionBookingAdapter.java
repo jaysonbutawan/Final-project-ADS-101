@@ -41,53 +41,18 @@ public class ChooseActionBookingAdapter extends RecyclerView.Adapter<ChooseActio
 
     @Override
     public void onBindViewHolder(@NonNull ChooseActionBookingAdapter.ViewHolder holder, int position) {
-        Hospital hospital = hospitals.get(position);
 
-        // ✅ Enhanced debugging: Log hospital data at binding time
-        Log.d("BookingAdapter", "onBindViewHolder - Position: " + position);
-        Log.d("BookingAdapter", "Hospital ID: " + hospital.getHospitalId());
-        Log.d("BookingAdapter", "Hospital Name: " + hospital.getHospitalName());
-        Log.d("BookingAdapter", "Hospital Address: " + hospital.getHospitalAddress());
+            Hospital hospital = hospitals.get(position);
+            holder.tvHospitalName.setText(hospital.getHospitalName());
+            holder.tvAddress.setText(hospital.getHospitalAddress());
+            holder.tvPhone.setText(hospital.getContactInfo());
+            holder.itemView.setOnClickListener(v -> {
 
-        // ✅ Validate hospital ID before setting data
-        if (hospital.getHospitalId() <= 0) {
-            Log.e("BookingAdapter", "⚠️ CRITICAL: Invalid hospital ID (" + hospital.getHospitalId() +
-                    ") at position " + position + " for hospital: " + hospital.getHospitalName());
-        }
-
-        holder.tvHospitalName.setText(hospital.getHospitalName());
-        holder.tvAddress.setText(hospital.getHospitalAddress());
-        holder.tvPhone.setText(hospital.getContactInfo());
-
-        holder.itemView.setOnClickListener(v -> {
-            // ✅ Enhanced debugging: Log click event details
-            Log.d("BookingAdapter", "=== BOOKING HOSPITAL CLICK EVENT ===");
-            Log.d("BookingAdapter", "Clicked position: " + position);
-            Log.d("BookingAdapter", "Clicked hospital ID: " + hospital.getHospitalId());
-            Log.d("BookingAdapter", "Clicked hospital name: " + hospital.getHospitalName());
-            Log.d("BookingAdapter", "School ID being passed: " + schoolId);
-            Log.d("BookingAdapter", "Total hospitals in list: " + hospitals.size());
-
-            // ✅ Double-check the hospital object integrity
-            Hospital clickedHospital = hospitals.get(position);
-            Log.d("BookingAdapter", "Double-check clicked hospital ID: " + clickedHospital.getHospitalId());
-
-            if (clickedHospital.getHospitalId() != hospital.getHospitalId()) {
-                Log.e("BookingAdapter", "🚨 MISMATCH DETECTED! Original ID: " + hospital.getHospitalId() +
-                        ", Retrieved ID: " + clickedHospital.getHospitalId());
-            }
-
-            Intent intent = new Intent(context, ViewBookingActivity.class);
-            intent.putExtra("hospital_id", hospital.getHospitalId());
-            intent.putExtra("school_id", schoolId);
-
-            Log.d("BookingAdapter", "Intent extras set:");
-            Log.d("BookingAdapter", "  hospital_id: " + hospital.getHospitalId());
-            Log.d("BookingAdapter", "  school_id: " + schoolId);
-            Log.d("BookingAdapter", "Starting ViewBookingActivity...");
-
-            context.startActivity(intent);
-        });
+                Intent intent = new Intent(context, ViewBookingActivity.class);
+                intent.putExtra("hospital_id", hospital.getHospitalId());
+                intent.putExtra("school_id", schoolId);
+                context.startActivity(intent);
+            });
     }
 
     @Override
